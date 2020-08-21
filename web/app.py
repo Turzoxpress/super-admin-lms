@@ -1,343 +1,190 @@
-"""
-Registration of a user 0 tokens
-Each user gets 10 tokens
-Store a sentence on our database for 1 token
-Retrieve his stored sentence on out database for 1 token
-"""
+import json
+
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 from pymongo import MongoClient
 import bcrypt
 
+from bson import BSON
+from bson import json_util
+
+from pprint import pprint
+
 app = Flask(__name__)
 api = Api(app)
 
 client = MongoClient("mongodb://db:27017")
-db = client.SentencesDatabase
-users = db["Users"]
+db = client["SuperAdminDB"]
+superad = db["SuperAdmin"]
+test = db["test"]
 
-class Register(Resource):
+
+# -- Welcome API
+class Welcome(Resource):
+    def get(self):
+        # Show a welcome greetings
+        retJson = {
+            "status": 200,
+            "msg": "Welcome LMS super admin! Your API server is working successfully!"
+        }
+        return jsonify(retJson)
+
+
+def UserExist(username):
+    if superad.find({"username": username}).count() == 0:
+        return False
+    else:
+        return True
+
+# -- Register new super admin
+class RegisterSuperAdmin(Resource):
     def post(self):
-        #Step 1 is to get posted data by the user
         postedData = request.get_json()
 
-        #Get the data
+        # Get the data
         username = postedData["username"]
-        password = postedData["password"] #"123xyz"
+        password = postedData["password"]
 
+        if UserExist(username):
+            retJson = {
+                'status': 301,
+                'msg': 'User already exists,Try with a new one!'
+            }
+            return jsonify(retJson)
 
         hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
-        #Store username and pw into the database
-        users.insert({
-            "Username": username,
-            "Password": hashed_pw,
-            "Sentence": "",
-            "Tokens":6
+        # Store username and pw into the database
+        superad.insert_one({
+            "username": username,
+            "password": hashed_pw
+
         })
 
         retJson = {
             "status": 200,
-            "msg": "You successfully signed up for the API"
+            "msg": "New Super Admin added successfully!"
         }
+
         return jsonify(retJson)
 
+
+
 def verifyPw(username, password):
-    hashed_pw = users.find({
-        "Username":username
-    })[0]["Password"]
+    if not UserExist(username):
+        return False
+
+    hashed_pw = superad.find({
+        "username":username
+    })[0]["password"]
 
     if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
         return True
     else:
         return False
 
-def countTokens(username):
-    tokens = users.find({
-        "Username":username
-    })[0]["Tokens"]
-    return tokens
-
-class Store(Resource):
-    def post(self):
-        #Step 1 get the posted data
-        postedData = request.get_json()
-
-        #Step 2 is to read the data
-        username = postedData["username"]
-        password = postedData["password"]
-        sentence = postedData["sentence"]
-
-        #Step 3 verify the username pw match
-        correct_pw = verifyPw(username, password)
-
-        if not correct_pw:
-            retJson = {
-                "status":302
-            }
-            return jsonify(retJson)
-        #Step 4 Verify user has enough tokens
-        num_tokens = countTokens(username)
-        if num_tokens <= 0:
-            retJson = {
-                "status": 301
-            }
-            return jsonify(retJson)
-
-        #Step 5 store the sentence, take one token away  and return 200OK
-        users.update({
-            "Username":username
-        }, {
-            "$set":{
-                "Sentence":sentence,
-                "Tokens":num_tokens-1
-                }
-        })
-
-        retJson = {
-            "status":200,
-            "msg":"Sentence saved successfully"
-        }
-        return jsonify(retJson)
-
-class Get(Resource):
+# -- Super admin login
+class SuperAdminLogin(Resource):
     def post(self):
         postedData = request.get_json()
 
+        # Get the data
         username = postedData["username"]
         password = postedData["password"]
 
-        #Step 3 verify the username pw match
-        correct_pw = verifyPw(username, password)
-        if not correct_pw:
+        if not UserExist(username):
             retJson = {
-                "status":302
+                'status': 301,
+                'msg': 'No user with with username'
             }
             return jsonify(retJson)
 
-        num_tokens = countTokens(username)
-        if num_tokens <= 0:
+        if not verifyPw(username,password):
             retJson = {
-                "status": 301
+                'status': 301,
+                'msg': 'Wrong username or password'
             }
             return jsonify(retJson)
 
-        #MAKE THE USER PAY!
-        users.update({
-            "Username":username
-        }, {
-            "$set":{
-                "Tokens":num_tokens-1
-                }
-        })
-
-
-
-        sentence = users.find({
-            "Username": username
-        })[0]["Sentence"]
         retJson = {
-            "status":200,
-            "sentence": str(sentence)
+            'status': 200,
+            'msg': 'Login successful! Welcome '+username
         }
-
         return jsonify(retJson)
 
 
-
-
-api.add_resource(Register, '/register')
-api.add_resource(Store, '/store')
-api.add_resource(Get, '/get')
-
-
-if __name__=="__main__":
-    app.run(host='0.0.0.0')
-
-
-
-
-
-"""
-from flask import Flask, jsonify, request
-from flask_restful import Api, Resource
-import os
-
-from pymongo import MongoClient
-
-app = Flask(__name__)
-api = Api(app)
-
-client = MongoClient("mongodb://db:27017")
-db = client.aNewDB
-UserNum = db["UserNum"]
-
-UserNum.insert({
-    'num_of_users':0
-})
-
-class Visit(Resource):
+# -- Show all super admins
+class ShowAllSuperAdmin(Resource):
     def get(self):
-        prev_num = UserNum.find({})[0]['num_of_users']
-        new_num = prev_num + 1
-        UserNum.update({}, {"$set":{"num_of_users":new_num}})
-        return str("Hello user " + str(new_num))
+        # data = superad.find_one()
+        # abc = json.dumps(data, sort_keys=True, indent=4, default=json_util.default)
+        # return str(abc)
+
+        data = superad.find()
+        holder = []
+        for i in data:
+            holder.append(i)
+        retJson = {
+            "status": 200,
+            "data": str(holder)
+        }
+
+        return jsonify(retJson)
 
 
-def checkPostedData(postedData, functionName):
-    if (functionName == "add" or functionName == "subtract" or functionName == "multiply"):
-        if "x" not in postedData or "y" not in postedData:
-            return 301 #Missing parameter
-        else:
-            return 200
-    elif (functionName == "division"):
-        if "x" not in postedData or "y" not in postedData:
-            return 301
-        elif int(postedData["y"])==0:
-            return 302
-        else:
-            return 200
+# -- Delete all super admins
+class DeleteAllData(Resource):
+    def get(self):
+        superad.drop()
 
-class Add(Resource):
+        retJson = {
+            "status": 200,
+            "msg": "All collection data deleted successfully!"
+        }
+
+        return jsonify(retJson)
+
+
+# -- test
+
+
+class Test(Resource):
     def post(self):
-        #If I am here, then the resouce Add was requested using the method POST
-
-        #Step 1: Get posted data:
         postedData = request.get_json()
 
-        #Steb 1b: Verify validity of posted data
-        status_code = checkPostedData(postedData, "add")
-        if (status_code!=200):
-            retJson = {
-                "Message": "An error happened",
-                "Status Code":status_code
+        # Get the data
+        data = postedData["data"]
+
+        test.insert_one(
+            {
+                "data": data
             }
-            return jsonify(retJson)
+        )
 
-        #If i am here, then status_code == 200
-        x = postedData["x"]
-        y = postedData["y"]
-        x = int(x)
-        y = int(y)
+        cursor = test.find()
+        holder = []
+        for i in cursor:
+            holder.append(i)
 
-        #Step 2: Add the posted data
-        ret = x+y
-        retMap = {
-            'Message': ret,
-            'Status Code': 200
+        retJson = {
+            "status": 200,
+            "msg": str(holder)
         }
-        return jsonify(retMap)
 
-class Subtract(Resource):
-    def post(self):
-        #If I am here, then the resouce Subtract was requested using the method POST
-
-        #Step 1: Get posted data:
-        postedData = request.get_json()
-
-        #Steb 1b: Verify validity of posted data
-        status_code = checkPostedData(postedData, "subtract")
+        return jsonify(retJson)
 
 
-        if (status_code!=200):
-            retJson = {
-                "Message": "An error happened",
-                "Status Code":status_code
-            }
-            return jsonify(retJson)
-
-        #If i am here, then status_code == 200
-        x = postedData["x"]
-        y = postedData["y"]
-        x = int(x)
-        y = int(y)
-
-        #Step 2: Subtract the posted data
-        ret = x-y
-        retMap = {
-            'Message': ret,
-            'Status Code': 200
-        }
-        return jsonify(retMap)
+# -----------------------------------------------------------------------
 
 
-class Multiply(Resource):
-    def post(self):
-        #If I am here, then the resouce Multiply was requested using the method POST
+api.add_resource(Welcome, '/welcome')
+api.add_resource(RegisterSuperAdmin, '/register_super_admin')
+api.add_resource(ShowAllSuperAdmin, '/show_all_super_admin')
+api.add_resource(Test, '/test')
+api.add_resource(DeleteAllData, '/delete_all_data')
+api.add_resource(SuperAdminLogin, '/super_admin_login')
 
-        #Step 1: Get posted data:
-        postedData = request.get_json()
+# -----------------------------------------------------------------------
 
-        #Steb 1b: Verify validity of posted data
-        status_code = checkPostedData(postedData, "multiply")
-
-
-        if (status_code!=200):
-            retJson = {
-                "Message": "An error happened",
-                "Status Code":status_code
-            }
-            return jsonify(retJson)
-
-        #If i am here, then status_code == 200
-        x = postedData["x"]
-        y = postedData["y"]
-        x = int(x)
-        y = int(y)
-
-        #Step 2: Multiply the posted data
-        ret = x*y
-        retMap = {
-            'Message': ret,
-            'Status Code': 200
-        }
-        return jsonify(retMap)
-
-class Divide(Resource):
-    def post(self):
-        #If I am here, then the resouce Divide was requested using the method POST
-
-        #Step 1: Get posted data:
-        postedData = request.get_json()
-
-        #Steb 1b: Verify validity of posted data
-        status_code = checkPostedData(postedData, "division")
-
-
-        if (status_code!=200):
-            retJson = {
-                "Message": "An error happened",
-                "Status Code":status_code
-            }
-            return jsonify(retJson)
-
-        #If i am here, then status_code == 200
-        x = postedData["x"]
-        y = postedData["y"]
-        x = int(x)
-        y = int(y)
-
-        #Step 2: Multiply the posted data
-        ret = (x*1.0)/y
-        retMap = {
-            'Message': ret,
-            'Status Code': 200
-        }
-        return jsonify(retMap)
-
-
-
-api.add_resource(Add, "/add")
-api.add_resource(Subtract, "/subtract")
-api.add_resource(Multiply, "/multiply")
-api.add_resource(Divide, "/division")
-api.add_resource(Visit, "/hello")
-
-@app.route('/')
-def hello_world():
-    return "Hello World!"
-
-
-if __name__=="__main__":
-    app.run(host='0.0.0.0')
-"""
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0')
