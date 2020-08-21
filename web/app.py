@@ -221,18 +221,15 @@ class SuperAdminLogOut(Resource):
 
         try:
             payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-            return payload['sub']
-        except jwt.ExpiredSignatureError:
-            #return 'Signature expired. Please log in again.'
+            # return payload['sub']
             retJson = {
-                 "status": "failed",
-                 "msg": "Invalid access token"
+                "status": "ok",
+                "msg": "Logout success!"
             }
 
             return jsonify(retJson)
-
-        except jwt.InvalidTokenError:
-            #return 'Invalid token. Please log in again.'
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
             retJson = {
                 "status": "failed",
                 "msg": "Invalid access token"
@@ -240,16 +237,125 @@ class SuperAdminLogOut(Resource):
 
             return jsonify(retJson)
 
-        """# return parts[1]
-        temp = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
 
-        retJson = {
-            "status": 200,
-            "received_token": parts[1],
-            "data": temp
-        }
+            return jsonify(retJson)
 
-        return jsonify(retJson)"""
+
+# -- Super Admin Password Update
+class UpdateSuperAdminPassword(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # ---------------
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            postedData = request.get_json()
+
+            # Get the data
+            old_password = postedData["old_password"]
+            password = postedData["password"]
+            password_confirmation = postedData["password_confirmation"]
+            if password != password_confirmation:
+                retJson = {
+                    "status": "failed",
+                    "msg": "New password & confirm password does not matched"
+                }
+                return jsonify(retJson)
+
+            else:
+                # return 'Ready to do next job'
+                hashed_pw = superad.find({
+                    "email": which_user
+                })[0]["password"]
+
+                if bcrypt.hashpw(old_password.encode('utf8'), hashed_pw) == hashed_pw:
+                    # return 'Ready to do next job'
+                    hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {"password": hashed_pw}}
+
+                    superad.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Password updated"
+                    }
+                    return jsonify(retJson)
+
+                else:
+                    # return 'Old password is wrong!'
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Old password is wrong!"
+                    }
+                    return jsonify(retJson)
+
+
+        # --------------------------------
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
 
 
 # -----------------------------------------------------------------------
@@ -262,6 +368,7 @@ api.add_resource(DeleteAllData, '/delete_all_data')
 
 api.add_resource(SuperAdminLogin, '/super_admin_login')
 api.add_resource(SuperAdminLogOut, '/super_admin_logout')
+api.add_resource(UpdateSuperAdminPassword, '/super_admin_password_update')
 
 # -----------------------------------------------------------------------
 
