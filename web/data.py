@@ -9,9 +9,10 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 
+
 app = Flask(__name__)
 api = Api(app)
-app.config['JSON_SORT_KEYS'] = False
+app.config['SECRET_KEY'] = "bangladesh"
 secret_key = "bangladesh"
 
 client = MongoClient("mongodb://db:27017")
@@ -26,13 +27,13 @@ class Welcome(Resource):
         # Show a welcome greetings
         retJson = {
             "status": 200,
-            "msg": "Welcome Turzo! Your Python & MongoDB based API server is working successfully!"
+            "msg": "Welcome LMS super admin! Your API server is working successfully!"
         }
         return jsonify(retJson)
 
 
 def UserExist(username):
-    if superad.find({"email": username}).count() == 0:
+    if superad.find({"username": username}).count() == 0:
         return False
     else:
         return True
@@ -44,10 +45,10 @@ class RegisterSuperAdmin(Resource):
         postedData = request.get_json()
 
         # Get the data
-        email = postedData["email"]
+        username = postedData["username"]
         password = postedData["password"]
 
-        if UserExist(email):
+        if UserExist(username):
             retJson = {
                 'status': 301,
                 'msg': 'User already exists,Try with a new one!'
@@ -58,7 +59,7 @@ class RegisterSuperAdmin(Resource):
 
         # Store username and pw into the database
         superad.insert_one({
-            "email": email,
+            "username": username,
             "password": hashed_pw
 
         })
@@ -71,18 +72,48 @@ class RegisterSuperAdmin(Resource):
         return jsonify(retJson)
 
 
-def verifyPw(email, password):
-    if not UserExist(email):
+def verifyPw(username, password):
+    if not UserExist(username):
         return False
 
     hashed_pw = superad.find({
-        "email": email
+        "username": username
     })[0]["password"]
 
     if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
         return True
     else:
         return False
+
+
+# -- Super admin login
+class SuperAdminLogin(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        username = postedData["username"]
+        password = postedData["password"]
+
+        if not UserExist(username):
+            retJson = {
+                'status': 301,
+                'msg': 'No user with with username'
+            }
+            return jsonify(retJson)
+
+        if not verifyPw(username, password):
+            retJson = {
+                'status': 301,
+                'msg': 'Wrong username or password'
+            }
+            return jsonify(retJson)
+
+        retJson = {
+            'status': 200,
+            'msg': 'Login successful! Welcome ' + username
+        }
+        return jsonify(retJson)
 
 
 # -- Show all super admins
@@ -117,94 +148,96 @@ class DeleteAllData(Resource):
         return jsonify(retJson)
 
 
-def generateAuthToken(email):
-    iat = datetime.utcnow()
-    exp = iat + timedelta(days=30)
-    nbf = iat
-    payload = {
-        'exp': exp,
-        'iat': iat,
-        'nbf': nbf
-        # 'aud': str(username)
-    }
-    if email:
-        payload['sub'] = email
-
-    tempData = jwt.encode(
-        payload,
-        str(secret_key),
-        algorithm='HS256'
-    ).decode('utf-8')
-
-    return tempData
+# -- test
 
 
-# -- Super admin login
-class SuperAdminLogin(Resource):
+class Test(Resource):
     def post(self):
         postedData = request.get_json()
 
         # Get the data
-        email = postedData["email"]
-        password = postedData["password"]
+        data = postedData["data"]
 
-        # Check user with email
-        if not UserExist(email):
-            retJson = {
-                'status': 301,
-                'msg': 'No user with with username'
+        test.insert_one(
+            {
+                "data": data
             }
-            return jsonify(retJson)
+        )
 
-        # Check password
-        if not verifyPw(email, password):
-            retJson = {
-                'status': 301,
-                'msg': 'Wrong username or password'
-            }
-            return jsonify(retJson)
+        cursor = test.find()
+        holder = []
+        for i in cursor:
+            holder.append(i)
 
-        # -- Generate an access token
         retJson = {
-            'status': "ok",
-            'msg': {
-                "id": 2,
-                "token": generateAuthToken(email)
-            }
+            "status": 200,
+            "msg": str(holder)
         }
+
         return jsonify(retJson)
 
 
-def verifyToken():
-    auth_header_value = request.headers.get('Authorization', None)
+class Authenticate(Resource):
+    def post(self):
+        postedData = request.get_json()
 
-    if not auth_header_value:
-        return False
+        # Get the data
+        username = postedData["username"]
+        password = postedData["password"]
 
-    parts = auth_header_value.split()
+        iat = datetime.utcnow()
+        exp = iat + timedelta(days=30)
+        nbf = iat
+        payload = {
+            'exp': exp,
+            'iat': iat,
+            'nbf': nbf
+            #'aud': str(username)
+        }
+        if username:
+            payload['sub'] = username
 
-    if parts[0].lower() != 'bearer':
-        return False
-    elif len(parts) == 1:
-        return False
-    elif len(parts) > 2:
-        return False
-
-    # return parts[1]
-    temp = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-
-    retJson = {
-        "status": 200,
-        "received_token": parts[1],
-        "data": temp
-    }
-
-    return jsonify(retJson)
+        tempData = jwt.encode(
+            payload,
+            str(secret_key),
+            algorithm='HS256'
+        ).decode('utf-8')
 
 
-# -- Super admin logout
-class SuperAdminLogOut(Resource):
-    def get(self):
+        retJosn = {
+            "status" : 200,
+            "token" : tempData
+        }
+
+        return jsonify(retJosn)
+
+
+
+
+def decode_auth_token(auth_token):
+    """
+    Decodes the auth token
+    :param auth_token:
+    :return: integer|string
+    """
+    try:
+        payload = jwt.decode(auth_token, secret_key)
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
+
+
+
+
+class TokenCheck(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        # token = postedData["token"]
+
         auth_header_value = request.headers.get('Authorization', None)
 
         if not auth_header_value:
@@ -219,29 +252,8 @@ class SuperAdminLogOut(Resource):
         elif len(parts) > 2:
             return False
 
-        try:
-            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-            return payload['sub']
-        except jwt.ExpiredSignatureError:
-            #return 'Signature expired. Please log in again.'
-            retJson = {
-                 "status": "failed",
-                 "msg": "Invalid access token"
-            }
-
-            return jsonify(retJson)
-
-        except jwt.InvalidTokenError:
-            #return 'Invalid token. Please log in again.'
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid access token"
-            }
-
-            return jsonify(retJson)
-
-        """# return parts[1]
-        temp = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+        # return parts[1]
+        temp = jwt.decode(parts[1], str(secret_key),  algorithms='HS256')
 
         retJson = {
             "status": 200,
@@ -249,7 +261,9 @@ class SuperAdminLogOut(Resource):
             "data": temp
         }
 
-        return jsonify(retJson)"""
+        return jsonify(retJson)
+
+        # return jsonify(retJson)
 
 
 # -----------------------------------------------------------------------
@@ -258,10 +272,11 @@ class SuperAdminLogOut(Resource):
 api.add_resource(Welcome, '/welcome')
 api.add_resource(RegisterSuperAdmin, '/register_super_admin')
 api.add_resource(ShowAllSuperAdmin, '/show_all_super_admin')
+api.add_resource(Test, '/test')
 api.add_resource(DeleteAllData, '/delete_all_data')
-
 api.add_resource(SuperAdminLogin, '/super_admin_login')
-api.add_resource(SuperAdminLogOut, '/super_admin_logout')
+api.add_resource(Authenticate, '/authenticate')
+api.add_resource(TokenCheck, '/token_check')
 
 # -----------------------------------------------------------------------
 
