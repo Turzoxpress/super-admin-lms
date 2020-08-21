@@ -1,4 +1,5 @@
 import json
+from base64 import b64decode
 
 from flask import Flask, jsonify, request, make_response
 from flask_restful import Api, Resource
@@ -6,11 +7,13 @@ from pymongo import MongoClient
 import bcrypt
 
 import jwt
-import datetime
+from datetime import datetime, timedelta
+
 
 app = Flask(__name__)
 api = Api(app)
 app.config['SECRET_KEY'] = "bangladesh"
+secret_key = "bangladesh"
 
 client = MongoClient("mongodb://db:27017")
 db = client["SuperAdminDB"]
@@ -174,9 +177,6 @@ class Test(Resource):
         return jsonify(retJson)
 
 
-
-
-
 class Authenticate(Resource):
     def post(self):
         postedData = request.get_json()
@@ -185,27 +185,33 @@ class Authenticate(Resource):
         username = postedData["username"]
         password = postedData["password"]
 
-        try:
-            payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=30, seconds=0),
-                'iat': datetime.datetime.utcnow(),
-                'sub': username
-            }
+        iat = datetime.utcnow()
+        exp = iat + timedelta(days=30)
+        nbf = iat
+        payload = {
+            'exp': exp,
+            'iat': iat,
+            'nbf': nbf
+            #'aud': str(username)
+        }
+        if username:
+            payload['sub'] = username
 
-            token = str(jwt.encode(
-                payload,
-                app.config.get('SECRET_KEY')
-            ))
+        tempData = jwt.encode(
+            payload,
+            str(secret_key),
+            algorithm='HS256'
+        ).decode('utf-8')
 
-            retJson = {
-                "status": 200,
-                "token": str(token)
-            }
 
-            return jsonify(retJson)
+        retJosn = {
+            "status" : 200,
+            "token" : tempData
+        }
 
-        except Exception as e:
-            return e
+        return jsonify(retJosn)
+
+
 
 
 def decode_auth_token(auth_token):
@@ -215,31 +221,49 @@ def decode_auth_token(auth_token):
     :return: integer|string
     """
     try:
-        payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+        payload = jwt.decode(auth_token, secret_key)
         return payload['sub']
     except jwt.ExpiredSignatureError:
         return 'Signature expired. Please log in again.'
     except jwt.InvalidTokenError:
         return 'Invalid token. Please log in again.'
 
+
+
+
 class TokenCheck(Resource):
     def post(self):
         postedData = request.get_json()
 
         # Get the data
-        token = postedData["token"]
+        # token = postedData["token"]
 
+        auth_header_value = request.headers.get('Authorization', None)
 
+        if not auth_header_value:
+            return False
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            return False
+        elif len(parts) == 1:
+            return False
+        elif len(parts) > 2:
+            return False
+
+        # return parts[1]
+        temp = jwt.decode(parts[1], str(secret_key),  algorithms='HS256')
 
         retJson = {
             "status": 200,
-            "status": str(decode_auth_token(token))
+            "received_token": parts[1],
+            "data": temp
         }
 
         return jsonify(retJson)
 
-        #return jsonify(retJson)
-
+        # return jsonify(retJson)
 
 
 # -----------------------------------------------------------------------
