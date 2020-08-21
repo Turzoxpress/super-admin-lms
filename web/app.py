@@ -1,17 +1,16 @@
 import json
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_restful import Api, Resource
 from pymongo import MongoClient
 import bcrypt
 
-from bson import BSON
-from bson import json_util
-
-from pprint import pprint
+import jwt
+import datetime
 
 app = Flask(__name__)
 api = Api(app)
+app.config['SECRET_KEY'] = "bangladesh"
 
 client = MongoClient("mongodb://db:27017")
 db = client["SuperAdminDB"]
@@ -35,6 +34,7 @@ def UserExist(username):
         return False
     else:
         return True
+
 
 # -- Register new super admin
 class RegisterSuperAdmin(Resource):
@@ -69,19 +69,19 @@ class RegisterSuperAdmin(Resource):
         return jsonify(retJson)
 
 
-
 def verifyPw(username, password):
     if not UserExist(username):
         return False
 
     hashed_pw = superad.find({
-        "username":username
+        "username": username
     })[0]["password"]
 
     if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
         return True
     else:
         return False
+
 
 # -- Super admin login
 class SuperAdminLogin(Resource):
@@ -99,7 +99,7 @@ class SuperAdminLogin(Resource):
             }
             return jsonify(retJson)
 
-        if not verifyPw(username,password):
+        if not verifyPw(username, password):
             retJson = {
                 'status': 301,
                 'msg': 'Wrong username or password'
@@ -108,7 +108,7 @@ class SuperAdminLogin(Resource):
 
         retJson = {
             'status': 200,
-            'msg': 'Login successful! Welcome '+username
+            'msg': 'Login successful! Welcome ' + username
         }
         return jsonify(retJson)
 
@@ -174,6 +174,74 @@ class Test(Resource):
         return jsonify(retJson)
 
 
+
+
+
+class Authenticate(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        username = postedData["username"]
+        password = postedData["password"]
+
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=30, seconds=0),
+                'iat': datetime.datetime.utcnow(),
+                'sub': username
+            }
+
+            token = str(jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY')
+            ))
+
+            retJson = {
+                "status": 200,
+                "token": str(token)
+            }
+
+            return jsonify(retJson)
+
+        except Exception as e:
+            return e
+
+
+def decode_auth_token(auth_token):
+    """
+    Decodes the auth token
+    :param auth_token:
+    :return: integer|string
+    """
+    try:
+        payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
+
+class TokenCheck(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        token = postedData["token"]
+
+
+
+        retJson = {
+            "status": 200,
+            "status": str(decode_auth_token(token))
+        }
+
+        return jsonify(retJson)
+
+        #return jsonify(retJson)
+
+
+
 # -----------------------------------------------------------------------
 
 
@@ -183,6 +251,8 @@ api.add_resource(ShowAllSuperAdmin, '/show_all_super_admin')
 api.add_resource(Test, '/test')
 api.add_resource(DeleteAllData, '/delete_all_data')
 api.add_resource(SuperAdminLogin, '/super_admin_login')
+api.add_resource(Authenticate, '/authenticate')
+api.add_resource(TokenCheck, '/token_check')
 
 # -----------------------------------------------------------------------
 

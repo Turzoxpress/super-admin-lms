@@ -3,3 +3,4 @@ flask_restful
 pymongo
 bcrypt
 python-bsonjs
+pyjwt
