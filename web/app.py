@@ -11,6 +11,9 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 import base64
 from base64 import b64encode
+import PIL
+from PIL import Image
+import time
 
 import requests
 
@@ -24,9 +27,8 @@ db = client["SuperAdminDB"]
 superad = db["SuperAdmin"]
 test = db["test"]
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
@@ -563,7 +565,7 @@ class GetSuperAdminProfileInfo(Resource):
                 user_data["id"] = str(i["_id"])
                 user_data["username"] = str(i["username"])
                 user_data["email"] = str(i["email"])
-                user_data["avatar_img"] = ""
+                user_data["avatar_img"] = str(i["avatar_img"])
                 user_data["cover_img"] = ""
                 user_data["created_at"] = str(i["created_at"])
                 user_data["fname"] = str(i["fname"])
@@ -862,6 +864,13 @@ def upload_file():
             return jsonify({"status": "uploaded"})
 
 
+app.secret_key = "secret key"
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 # -- Super Admin avatar image upload
 class SuperAdminAvatarImageUpload(Resource):
 
@@ -920,40 +929,61 @@ class SuperAdminAvatarImageUpload(Resource):
 
                 return jsonify(retJson)
 
-            # work to do
-            if 'file' not in request.files:
-                # flash('No file part')
-                # return redirect(request.url)
-                return ("No file part")
+                # work to do
+            if request.method == 'POST':
+                # check if the post request has the file part
+                if 'avatar_img' not in request.files:
+                    flash('No file part')
+                    return redirect(request.url)
+                file = request.files['avatar_img']
+                # if user does not select file, browser also
+                # submit an empty part without filename
+                if file.filename == '':
+                    flash('No selected file')
+                    return redirect(request.url)
+                if file and allowed_file(file.filename):
+                    filename = str(time.time_ns())+file.filename#secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    # return jsonify({"status": "uploaded"})
+                    client_id = 'cc2c0f99f595668'
+                    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
 
-            file = request.files['file']
-            # if user does not select file, browser also
-            # submit a empty part without filename
-            if file.filename == '':
-                """flash('No selected file')
-                return redirect(request.url)"""
-                return ("No selected file")
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                """return redirect(url_for('uploaded_file',
-                                        filename=filename))"""
-                return jsonify({"msg": str(url_for('uploaded_file',
-                                                   filename=filename))})
+                    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
 
-            """myquery = {"email": which_user}
-            newvalues = {"$set": {
-                "avatar_img": "address",
-                "updated_at": datetime.today().strftime('%d-%m-%Y')
-            }}
+                    url = "https://api.imgur.com/3/upload.json"
+                    # im1 = Image.open(file)
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-            superad.update_one(myquery, newvalues)
+                    j1 = requests.post(
+                        url,
+                        headers=headers,
+                        data={
+                            'key': api_key,
+                            'image': b64encode(open(filepath, 'rb').read()),
+                            'type': 'base64',
+                            'name': '1.jpg',
+                            'title': 'Picture no. 1'
+                        }
+                    )
+                    data = json.loads(j1.text)['data']
 
-            retJson = {
-                "status": "ok",
-                "msg": "Address updated"
-            }
-            return jsonify(retJson)"""
+                    # return data['link']
+                    # return (str(j1))
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {
+                        "avatar_img": data['link'],
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
+
+                    superad.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Avatar image updated",
+                        "filename": str(filename)
+                    }
+                    return jsonify(retJson)
+
 
 
         # ********************************************************************************************************
@@ -978,45 +1008,48 @@ class SuperAdminAvatarImageUpload(Resource):
             return jsonify(retJson)
 
 
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-app.secret_key = "secret key"
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-@app.route('/')
-def upload_form():
-    return render_template('upload.html')
-
-
 @app.route('/test2', methods=['POST'])
 def upload_image():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'avatar_img' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['avatar_img']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            # return jsonify({"status": "uploaded"})
+            client_id = 'cc2c0f99f595668'
+            headers = {"Authorization": "Client-ID cc2c0f99f595668"}
 
+            api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
 
-    client_id = 'cc2c0f99f595668'
-    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+            url = "https://api.imgur.com/3/upload.json"
+            # im1 = Image.open(file)
+            filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+            j1 = requests.post(
+                url,
+                headers=headers,
+                data={
+                    'key': api_key,
+                    'image': b64encode(open(filepath, 'rb').read()),
+                    'type': 'base64',
+                    'name': '1.jpg',
+                    'title': 'Picture no. 1'
+                }
+            )
+            data = json.loads(j1.text)['data']
 
-    url = "https://api.imgur.com/3/upload.json"
+            return data['link']
+            # return (str(j1))
 
-    j1 = requests.post(
-        url,
-        headers=headers,
-        data={
-            'key': api_key,
-            'image': b64encode(open('uploads/avatar.png', 'rb').read()),
-            'type': 'base64',
-            'name': '1.jpg',
-            'title': 'Picture no. 1'
-        }
-    )
-    data = json.loads(j1.text)['data']
-
-
-    return data['link']
     # -----------------------------------------------------------------------
 
 
