@@ -4,3 +4,4 @@ pymongo
 bcrypt
 python-bsonjs
 pyjwt
+requests

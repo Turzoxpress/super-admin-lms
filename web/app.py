@@ -1,13 +1,18 @@
 import json
-from base64 import b64decode
+import os
 
-from flask import Flask, jsonify, request, make_response
-from flask_restful import Api, Resource
+from flask import Flask, jsonify, request, make_response, redirect, url_for, flash, render_template
+from flask_restful import Api, Resource, reqparse
 from pymongo import MongoClient
 import bcrypt
 
 import jwt
 from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+import base64
+from base64 import b64encode
+
+import requests
 
 app = Flask(__name__)
 api = Api(app)
@@ -18,6 +23,11 @@ client = MongoClient("mongodb://db:27017")
 db = client["SuperAdminDB"]
 superad = db["SuperAdmin"]
 test = db["test"]
+
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 # -- Welcome API
@@ -549,7 +559,7 @@ class GetSuperAdminProfileInfo(Resource):
             holder = []
             user_data = {}
             for i in result:
-                #user_data = {}
+                # user_data = {}
                 user_data["id"] = str(i["_id"])
                 user_data["username"] = str(i["username"])
                 user_data["email"] = str(i["email"])
@@ -568,7 +578,7 @@ class GetSuperAdminProfileInfo(Resource):
                 user_data["nid"] = str(i["nid"])
                 user_data["designation"] = str(i["designation"])
                 user_data["role"] = str(i["role"])
-                #holder.append(user_data)
+                # holder.append(user_data)
 
             retJson = {
                 "status": "ok",
@@ -720,6 +730,7 @@ class SuperAdminAddressUpdate(Resource):
 
             return jsonify(retJson)
 
+
 # -- Get Super Admin address
 class GetSuperAdminAddress(Resource):
     def get(self):
@@ -781,7 +792,7 @@ class GetSuperAdminAddress(Resource):
             holder = []
             user_data = {}
             for i in result:
-                #user_data = {}
+                # user_data = {}
                 user_data["id"] = str(i["_id"])
                 user_data["user_id"] = str(i["_id"])
                 user_data["address"] = str(i["address"])
@@ -796,7 +807,7 @@ class GetSuperAdminAddress(Resource):
                 user_data["per_thana"] = str(i["per_thana"])
                 user_data["per_district"] = str(i["per_district"])
                 user_data["per_division"] = str(i["per_division"])
-                #holder.append(user_data)
+                # holder.append(user_data)
 
             retJson = {
                 "status": "ok",
@@ -825,7 +836,188 @@ class GetSuperAdminAddress(Resource):
             }
 
             return jsonify(retJson)
-# -----------------------------------------------------------------------
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/test', methods=['POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'avatar_img' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['avatar_img']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return jsonify({"status": "uploaded"})
+
+
+# -- Super Admin avatar image upload
+class SuperAdminAvatarImageUpload(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # Check user with email
+            if not UserExist(which_user):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            # work to do
+            if 'file' not in request.files:
+                # flash('No file part')
+                # return redirect(request.url)
+                return ("No file part")
+
+            file = request.files['file']
+            # if user does not select file, browser also
+            # submit a empty part without filename
+            if file.filename == '':
+                """flash('No selected file')
+                return redirect(request.url)"""
+                return ("No selected file")
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                """return redirect(url_for('uploaded_file',
+                                        filename=filename))"""
+                return jsonify({"msg": str(url_for('uploaded_file',
+                                                   filename=filename))})
+
+            """myquery = {"email": which_user}
+            newvalues = {"$set": {
+                "avatar_img": "address",
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            superad.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Address updated"
+            }
+            return jsonify(retJson)"""
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+app.secret_key = "secret key"
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/')
+def upload_form():
+    return render_template('upload.html')
+
+
+@app.route('/test2', methods=['POST'])
+def upload_image():
+
+
+    client_id = 'cc2c0f99f595668'
+    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+
+    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+
+    url = "https://api.imgur.com/3/upload.json"
+
+    j1 = requests.post(
+        url,
+        headers=headers,
+        data={
+            'key': api_key,
+            'image': b64encode(open('uploads/avatar.png', 'rb').read()),
+            'type': 'base64',
+            'name': '1.jpg',
+            'title': 'Picture no. 1'
+        }
+    )
+    data = json.loads(j1.text)['data']
+
+
+    return data['link']
+    # -----------------------------------------------------------------------
 
 
 api.add_resource(Welcome, '/welcome')
@@ -840,6 +1032,7 @@ api.add_resource(SuperAdminProfileInfoUpdate, '/super_admin_profile_info_update'
 api.add_resource(GetSuperAdminProfileInfo, '/get_super_admin_profile_info')
 api.add_resource(SuperAdminAddressUpdate, '/super_user_address_update')
 api.add_resource(GetSuperAdminAddress, '/get_super_admin_address')
+api.add_resource(SuperAdminAvatarImageUpload, '/super_admin_avatar_upload')
 
 # -----------------------------------------------------------------------
 
