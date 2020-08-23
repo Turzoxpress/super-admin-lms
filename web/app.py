@@ -566,7 +566,7 @@ class GetSuperAdminProfileInfo(Resource):
                 user_data["username"] = str(i["username"])
                 user_data["email"] = str(i["email"])
                 user_data["avatar_img"] = str(i["avatar_img"])
-                user_data["cover_img"] = ""
+                user_data["cover_img"] = str(i["cover_img"])
                 user_data["created_at"] = str(i["created_at"])
                 user_data["fname"] = str(i["fname"])
                 user_data["lname"] = str(i["lname"])
@@ -942,7 +942,7 @@ class SuperAdminAvatarImageUpload(Resource):
                     flash('No selected file')
                     return redirect(request.url)
                 if file and allowed_file(file.filename):
-                    filename = str(time.time_ns())+file.filename#secure_filename(file.filename)
+                    filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     # return jsonify({"status": "uploaded"})
                     client_id = 'cc2c0f99f595668'
@@ -979,8 +979,7 @@ class SuperAdminAvatarImageUpload(Resource):
 
                     retJson = {
                         "status": "ok",
-                        "msg": "Avatar image updated",
-                        "filename": str(filename)
+                        "msg": "Avatar image updated"
                     }
                     return jsonify(retJson)
 
@@ -1006,6 +1005,143 @@ class SuperAdminAvatarImageUpload(Resource):
             }
 
             return jsonify(retJson)
+
+
+# -- Super Admin cover image upload
+class SuperAdminCoverImageUpload(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # Check user with email
+            if not UserExist(which_user):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+                # work to do
+            if request.method == 'POST':
+                # check if the post request has the file part
+                if 'cover_img' not in request.files:
+                    flash('No file part')
+                    return redirect(request.url)
+                file = request.files['cover_img']
+                # if user does not select file, browser also
+                # submit an empty part without filename
+                if file.filename == '':
+                    flash('No selected file')
+                    return redirect(request.url)
+                if file and allowed_file(file.filename):
+                    filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    # return jsonify({"status": "uploaded"})
+                    client_id = 'cc2c0f99f595668'
+                    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+
+                    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+
+                    url = "https://api.imgur.com/3/upload.json"
+                    # im1 = Image.open(file)
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    j1 = requests.post(
+                        url,
+                        headers=headers,
+                        data={
+                            'key': api_key,
+                            'image': b64encode(open(filepath, 'rb').read()),
+                            'type': 'base64',
+                            'name': '1.jpg',
+                            'title': 'Picture no. 1'
+                        }
+                    )
+                    data = json.loads(j1.text)['data']
+
+                    # return data['link']
+                    # return (str(j1))
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {
+                        "cover_img": data['link'],
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
+
+                    superad.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Cover image updated"
+                    }
+                    return jsonify(retJson)
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
 
 
 @app.route('/test2', methods=['POST'])
@@ -1066,6 +1202,7 @@ api.add_resource(GetSuperAdminProfileInfo, '/get_super_admin_profile_info')
 api.add_resource(SuperAdminAddressUpdate, '/super_user_address_update')
 api.add_resource(GetSuperAdminAddress, '/get_super_admin_address')
 api.add_resource(SuperAdminAvatarImageUpload, '/super_admin_avatar_upload')
+api.add_resource(SuperAdminCoverImageUpload, '/super_admin_cover_upload')
 
 # -----------------------------------------------------------------------
 
