@@ -1275,7 +1275,6 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
 
         # Get the data
         token = postedData["token"]
-        email = postedData["email"]
         password = postedData["password"]
         password_confirmation = postedData["password_confirmation"]
 
@@ -1310,14 +1309,14 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
 
             return jsonify(retJson)
 
-        # Check user with email
+        """# Check user with email
         if not UserExist(email):
             retJson = {
                 "status": "failed",
                 "msg": "Email not exists"
             }
 
-            return jsonify(retJson)
+            return jsonify(retJson)"""
 
         hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
