@@ -29,6 +29,7 @@ secret_key = "bangladesh"
 client = MongoClient("mongodb://db:27017")
 db = client["SuperAdminDB"]
 superad = db["SuperAdmin"]
+tokenbank = db["tokenbank"]
 test = db["test"]
 
 UPLOAD_FOLDER = 'uploads'
@@ -49,6 +50,13 @@ class Welcome(Resource):
 
 def UserExist(username):
     if superad.find({"email": username}).count() == 0:
+        return False
+    else:
+        return True
+
+
+def TokenExist(tokenToCheck):
+    if tokenbank.find({"token": tokenToCheck}).count() == 0:
         return False
     else:
         return True
@@ -1213,7 +1221,7 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
             'exp': exp,
             'iat': iat,
             'nbf': nbf,
-            'aud': str(email)
+            # 'aud': str(email)
         }
         if email:
             payload['sub'] = email
@@ -1224,7 +1232,11 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
             algorithm='HS256'
         ).decode('utf-8')
 
-        url = "https://brlbd.com/turzo/superlms/sendmail.php?p=password_reset"
+        data_to_insert = {"email": email, "token": tempData}
+
+        isTokenInserted = tokenbank.insert_one(data_to_insert)
+
+        url = "http://tuembd.com/test_mail.php?email=" + email + "&token=" + tempData
 
         payload = {
             'email': email,
@@ -1250,11 +1262,83 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
         retJosn = {
             "status": "ok",
             "msg": tempData,
-            "url": str(url),
             "email_status": str(response.text)
+            #"tokenStatus": str(isTokenInserted)
         }
 
         return jsonify(retJosn)
+
+
+class SuperAdminPasswordResetReedemByEmail(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        token = postedData["token"]
+        email = postedData["email"]
+        password = postedData["password"]
+        password_confirmation = postedData["password_confirmation"]
+
+        payload = jwt.decode(token, str(secret_key), algorithms='HS256')
+        # return payload['sub']
+        which_user = payload['sub']
+
+        # Check user with email
+        if not TokenExist(token):
+            retJson = {
+                "status": "failed",
+                "msg": "Password reset token is not valid"
+            }
+
+            return jsonify(retJson)
+
+
+        # Check user with email
+        if not UserExist(which_user):
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        if password != password_confirmation:
+            retJson = {
+                "status": "failed",
+                "msg": "Password & confirm password doesn't matched!"
+            }
+
+            return jsonify(retJson)
+
+        # Check user with email
+        if not UserExist(email):
+            retJson = {
+                "status": "failed",
+                "msg": "Email not exists"
+            }
+
+            return jsonify(retJson)
+
+        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+        myquery = {"email": which_user}
+        newvalues = {"$set": {
+            "password": hashed_pw,
+            "updated_at": datetime.today().strftime('%d-%m-%Y')
+        }}
+
+        superad.update_one(myquery, newvalues)
+
+        deleteToken = {"token": token}
+
+        isTokenDeleted = tokenbank.delete_one(deleteToken)
+
+        retJson = {
+            "status": "ok",
+            "msg": "Password reset success"
+            #"token_status": str(isTokenDeleted)
+        }
+        return jsonify(retJson)
 
 
 class AWSSender(Resource):
@@ -1270,6 +1354,23 @@ class AWSSender(Resource):
         response = smtp.sendmail('customer_support_lms@brlbd.com', 'turzoxpress@gmail.com', 'welcome')
 
         return jsonify(str(response))
+
+
+class TestPhpRequest(Resource):
+    def get(self):
+        url = "http://tuembd.com/test_mail.php"
+        payload = {
+            "email": "turzoxpress@gmail.com",
+            "token": "sdfsdfsdfdsfsdfdsf"
+        }
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        x = requests.post(url, headers=headers,
+                          data=payload)
+
+        return jsonify(str(x.text))
 
 
 # -----------------------------------------------------------------------
@@ -1291,6 +1392,8 @@ api.add_resource(SuperAdminAvatarImageUpload, '/super_admin_avatar_upload')
 api.add_resource(SuperAdminCoverImageUpload, '/super_admin_cover_upload')
 api.add_resource(SuperAdminPasswordResetRequestByEmail, '/super_admin_email_password_reset_request')
 api.add_resource(AWSSender, '/test_mail')
+api.add_resource(TestPhpRequest, '/test_php')
+api.add_resource(SuperAdminPasswordResetReedemByEmail, '/super_admin_password_redeem_email')
 
 # -----------------------------------------------------------------------
 
