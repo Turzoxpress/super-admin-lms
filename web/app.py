@@ -1259,15 +1259,15 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
 
 class AWSSender(Resource):
     def get(self):
-        s = smtplib.SMTP()
+        smtp = smtplib.SMTP('email-smtp.us-east-2.amazonaws.com')
 
-        s.connect('email-smtp.us-east-2.amazonaws.com', 587)
+        smtp.connect('email-smtp.us-east-2.amazonaws.com', 587)
 
-        s.starttls()
+        smtp.starttls()
 
-        s.login('AKIAUWJ6HWYKQOPXBNFT', 'BGY/sFIu1up+j/HvTaCPQQjFRuN3w1v46qpFTroG4j7j')
+        smtp.login('AKIAUWJ6HWYKQOPXBNFT', 'BGY/sFIu1up+j/HvTaCPQQjFRuN3w1v46qpFTroG4j7j')
 
-        response = s.sendmail('customer_support_lms@brlbd.com', 'turzoxpress@gmail.com', 'welcome')
+        response = smtp.sendmail('customer_support_lms@brlbd.com', 'turzoxpress@gmail.com', 'welcome')
 
         return jsonify(str(response))
 
