@@ -1261,7 +1261,7 @@ class AWSSender(Resource):
     def get(self):
         smtp = smtplib.SMTP('email-smtp.us-east-2.amazonaws.com')
 
-        smtp.connect('email-smtp.us-east-2.amazonaws.com', 587)
+        smtp.connect('email-smtp.us-east-2.amazonaws.com', 25)
 
         smtp.starttls()
 
