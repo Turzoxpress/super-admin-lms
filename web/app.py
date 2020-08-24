@@ -17,6 +17,10 @@ import time
 
 import requests
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 app = Flask(__name__)
 api = Api(app)
 app.config['JSON_SORT_KEYS'] = False
@@ -1143,7 +1147,6 @@ class SuperAdminCoverImageUpload(Resource):
             return jsonify(retJson)
 
 
-
 @app.route('/test2', methods=['POST'])
 def upload_image():
     if request.method == 'POST':
@@ -1186,7 +1189,90 @@ def upload_image():
             return data['link']
             # return (str(j1))
 
-    # -----------------------------------------------------------------------
+
+class SuperAdminPasswordResetRequestByEmail(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        email = postedData["email"]
+
+        # Check user with email
+        if not UserExist(email):
+            retJson = {
+                "status": "failed",
+                "msg": "Email not exists"
+            }
+
+            return jsonify(retJson)
+
+        iat = datetime.utcnow()
+        exp = iat + timedelta(days=30)
+        nbf = iat
+        payload = {
+            'exp': exp,
+            'iat': iat,
+            'nbf': nbf,
+            'aud': str(email)
+        }
+        if email:
+            payload['sub'] = email
+
+        tempData = jwt.encode(
+            payload,
+            str(secret_key),
+            algorithm='HS256'
+        ).decode('utf-8')
+
+        url = "https://brlbd.com/turzo/superlms/sendmail.php?p=password_reset"
+
+        payload = {
+            'email': email,
+            'token': tempData
+        }
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        # response = requests.request("POST", url, headers=headers, data=payload)
+
+        response = requests.post(
+            url,
+            headers=headers,
+            data={
+                'email': email,
+                'token': tempData
+            }
+        )
+        # data = json.loads(response.text)['data']
+
+        # print(response.text.encode('utf8'))
+        retJosn = {
+            "status": "ok",
+            "msg": tempData,
+            "url": str(url),
+            "email_status": str(response.text)
+        }
+
+        return jsonify(retJosn)
+
+
+class AWSSender(Resource):
+    def get(self):
+        s = smtplib.SMTP()
+
+        s.connect('email-smtp.us-east-2.amazonaws.com', 587)
+
+        s.starttls()
+
+        s.login('AKIAUWJ6HWYKQOPXBNFT', 'BGY/sFIu1up+j/HvTaCPQQjFRuN3w1v46qpFTroG4j7j')
+
+        response = s.sendmail('customer_support_lms@brlbd.com', 'turzoxpress@gmail.com', 'welcome')
+
+        return jsonify(str(response))
+
+
+# -----------------------------------------------------------------------
 
 
 api.add_resource(Welcome, '/welcome')
@@ -1203,6 +1289,8 @@ api.add_resource(SuperAdminAddressUpdate, '/super_user_address_update')
 api.add_resource(GetSuperAdminAddress, '/get_super_admin_address')
 api.add_resource(SuperAdminAvatarImageUpload, '/super_admin_avatar_upload')
 api.add_resource(SuperAdminCoverImageUpload, '/super_admin_cover_upload')
+api.add_resource(SuperAdminPasswordResetRequestByEmail, '/super_admin_email_password_reset_request')
+api.add_resource(AWSSender, '/test_mail')
 
 # -----------------------------------------------------------------------
 
