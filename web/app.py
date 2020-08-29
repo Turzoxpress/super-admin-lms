@@ -18,10 +18,12 @@ import time
 import requests
 
 import smtplib
+from flask_cors import CORS
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 app.config['JSON_SORT_KEYS'] = False
 secret_key = "bangladesh"

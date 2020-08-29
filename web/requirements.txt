@@ -6,4 +6,4 @@ python-bsonjs
 pyjwt
 requests
 Pillow
-
+flask-cors
