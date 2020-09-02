@@ -22,4 +22,16 @@ Open the terminal application
 To delete everything in a directory run: rm /path/to/dir/*
 To remove all sub-directories and files: rm -r /path/to/dir
 
+
+//----------- For MongoDB backup
+sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dump.gz
+
+
+sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
+
+
+
+
+
+
 ?>

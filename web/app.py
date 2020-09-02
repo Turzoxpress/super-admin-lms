@@ -26,7 +26,7 @@ app = Flask(__name__)
 CORS(app)
 api = Api(app)
 app.config['JSON_SORT_KEYS'] = False
-secret_key = "bangladesh"
+secret_key = "bangladesh1@4432_1@"
 
 client = MongoClient("mongodb://db:27017")
 db = client["SuperAdminDB"]
