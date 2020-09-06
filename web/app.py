@@ -1345,6 +1345,97 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
         return jsonify(retJson)
 
 
+# -- Get All Package List
+class GetAllPackageList(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = packagecol.find({})
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "display": str(i["package"]["display"]),
+                    "title": str(i["package"]["title"]),
+                    "description": str(i["package"]["description"]),
+                    "created_at": str(i["package"]["created_at"]),
+                    "updated_at": str(i["package"]["updated_at"]),
+                    "type": str(i["package"]["type"]),
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": holder
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+def PackageExist(packageid):
+    if packagecol.find({"_id": packageid}).count() == 0:
+        return False
+    else:
+        return True
+
+
 # -- Save Package
 class PackageSave(Resource):
     def post(self):
@@ -1449,9 +1540,6 @@ class PackageSave(Resource):
             return jsonify(retJson)
 
 
-
-
-
 # -- Delete package collection
 class DeleteFullPackage(Resource):
     def get(self):
@@ -1514,42 +1602,65 @@ class GetPackageDetails(Resource):
             # Get the data
             id = postedData["package_id"]
 
-            result = packagecol.find({"_id": ObjectId(id)})
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
 
-            parameters = {}
-            for i in result:
-                parameters = i["parameters"]
+                # Check id is exist
+                if not PackageExist(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Invalid package id"
+                    }
 
-            params = []
-            for i in parameters:
-                data = {
-                    "param_id": str(i["_id"]),
-                    "name": str(i["name"]),
-                    "quantity": str(i["quantity"]),
-                    "price": str(i["price"])
+                    return jsonify(retJson)
+
+                result = packagecol.find({"_id": ObjectId(id)})
+
+                parameters = {}
+                for i in result:
+                    parameters = i["parameters"]
+
+                params = []
+                for i in parameters:
+                    data = {
+                        "param_id": str(i["_id"]),
+                        "name": str(i["name"]),
+                        "quantity": str(i["quantity"]),
+                        "price": str(i["price"])
+                    }
+                    params.append(data)
+
+                result2 = packagecol.find({"_id": ObjectId(id)})
+                holder = []
+                package_data = {}
+                for i in result2:
+                    package_data["id"] = str(i["_id"])
+                    package_data["display"] = str(i["package"]["display"])
+                    package_data["title"] = str(i["package"]["title"])
+                    package_data["description"] = str(i["package"]["description"])
+                    package_data["created_at"] = str(i["package"]["created_at"])
+                    package_data["updated_at"] = str(i["package"]["updated_at"])
+                    package_data["type"] = str(i["package"]["type"])
+                    package_data["params"] = params
+                    holder.append(package_data)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": package_data
                 }
-                params.append(data)
 
-            result2 = packagecol.find({"_id": ObjectId(id)})
-            holder = []
-            package_data = {}
-            for i in result2:
-                package_data["id"] = str(i["_id"])
-                package_data["display"] = str(i["package"]["display"])
-                package_data["title"] = str(i["package"]["title"])
-                package_data["description"] = str(i["package"]["description"])
-                package_data["created_at"] = str(i["package"]["created_at"])
-                package_data["updated_at"] = str(i["package"]["updated_at"])
-                package_data["type"] = str(i["package"]["type"])
-                package_data["params"] = params
-                holder.append(package_data)
+                return jsonify(retJson)
 
-            retJson = {
-                "status": "ok",
-                "msg": package_data
-            }
 
-            return jsonify(retJson)
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+
 
         except jwt.ExpiredSignatureError:
             retJson = {
@@ -1564,100 +1675,6 @@ class GetPackageDetails(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
-
-
-
-
-
-# -- Get All Package List
-class GetAllPackageList(Resource):
-    def get(self):
-
-
-        try:
-            auth_header_value = request.headers.get('Authorization', None)
-
-            if not auth_header_value:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-
-            parts = auth_header_value.split()
-
-            if parts[0].lower() != 'bearer':
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-            elif len(parts) == 1:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-            elif len(parts) > 2:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-
-            result = packagecol.find({})
-
-            holder = []
-            for i in result:
-                data = {
-                    "id": str(i["_id"]),
-                    "display": str(i["package"]["display"]),
-                    "title": str(i["package"]["title"]),
-                    "description": str(i["package"]["description"]),
-                    "created_at": str(i["package"]["created_at"]),
-                    "updated_at": str(i["package"]["updated_at"]),
-                    "type": str(i["package"]["type"]),
-                }
-
-                holder.append(data)
-
-            retJson = {
-                "status": "ok",
-                "msg": holder
-            }
-
-            return jsonify(retJson)
-
-
-        except jwt.ExpiredSignatureError:
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid access token"
-            }
-
-            return jsonify(retJson)
-
-        except jwt.InvalidTokenError:
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid access token"
-            }
-
-            return jsonify(retJson)
-
-def PackageExist(packageid):
-    if packagecol.find({"_id": packageid}).count() == 0:
-        return False
-    else:
-        return True
 
 
 # -- Package Update
@@ -1751,16 +1768,105 @@ class PackageUpdate(Resource):
 
                 return jsonify(retJson)
 
+            ##################################################################
 
 
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
 
 
+# -- Package Delete
+class PackageDelete(Resource):
+    def post(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            ################################################################
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["package_id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not PackageExist(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Package update failed"
+                    }
+
+                    return jsonify(retJson)
+
+                myquery = {"_id": ObjectId(id)}
+
+                res = packagecol.delete_one(myquery)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Package deleted successfully"
+                }
+
+                return jsonify(retJson)
 
 
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Package update failed"
+                }
 
-
-
-
+                return jsonify(retJson)
 
             ##################################################################
 
@@ -1780,8 +1886,141 @@ class PackageUpdate(Resource):
             }
 
 
+# -- Package new parameter add
+class PackageAddNewParameter(Resource):
+    def post(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            ################################################################
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            parameters = postedData["parameters"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not PackageExist(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Package update failed"
+                    }
+
+                    return jsonify(retJson)
+
+                    # to do
+
+                    # finding the dynamic paramerters values
+                countT = len(parameters)
+
+                params = []
+                for i in range(countT):
+                    data = {
+                        "_id": ObjectId(),
+                        "name": parameters[i]['name'],
+                        "quantity": parameters[i]['quantity'],
+                        "price": parameters[i]['price']
+                    }
+                    params.append(data)
+
+                result = packagecol.find({"_id": ObjectId(id)})
+
+                dbparams = {}
+                for i in result:
+                    dbparams = i["parameters"]
 
 
+                for i in dbparams:
+                    data = {
+                        "_id": str(i["_id"]),
+                        "name": str(i["name"]),
+                        "quantity": str(i["quantity"]),
+                        "price": str(i["price"])
+                    }
+                    params.append(data)
+
+
+                myquery = {"_id": ObjectId(id)}
+
+                newvalues = {"$set": {
+                    "parameters": params
+                }}
+
+                stat = packagecol.update_one(myquery, newvalues)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Package updated successfully",
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Package update failed"
+                }
+
+                return jsonify(retJson)
+
+            ##################################################################
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
 
 
 # -----------------------------------------------------------------------
@@ -1811,7 +2050,8 @@ api.add_resource(DeleteFullPackage, '/delete-full-package')
 api.add_resource(GetPackageDetails, '/package-detail')
 api.add_resource(GetAllPackageList, '/all-packages')
 api.add_resource(PackageUpdate, '/package-update')
-
+api.add_resource(PackageDelete, '/package-delete')
+api.add_resource(PackageAddNewParameter, '/parameter-save')
 
 # -----------------------------------------------------------------------
 
