@@ -1637,7 +1637,6 @@ class GetAllPackageList(Resource):
             return jsonify(retJson)
 
 
-
         except jwt.ExpiredSignatureError:
             retJson = {
                 "status": "failed",
@@ -1653,6 +1652,132 @@ class GetAllPackageList(Resource):
             }
 
             return jsonify(retJson)
+
+def PackageExist(packageid):
+    if packagecol.find({"_id": packageid}).count() == 0:
+        return False
+    else:
+        return True
+
+
+# -- Package Update
+class PackageUpdate(Resource):
+    def post(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            ################################################################
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            title = postedData["title"]
+            display = postedData["display"]
+            description = postedData["description"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not PackageExist(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Package update failed"
+                    }
+
+                    return jsonify(retJson)
+
+                myquery = {"_id": ObjectId(id)}
+                newvalues = {"$set": {
+                    "package.title": title,
+                    "package.display": display,
+                    "package.description": description,
+                    "package.updated_at": datetime.today().strftime('%d-%m-%Y')
+                }}
+
+                packagecol.update_one(myquery, newvalues)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Package updated successfully"
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Package update failed"
+                }
+
+                return jsonify(retJson)
+
+
+
+
+
+
+
+
+
+
+
+
+            ##################################################################
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
 
 
 
@@ -1685,6 +1810,8 @@ api.add_resource(PackageSave, '/package-save')
 api.add_resource(DeleteFullPackage, '/delete-full-package')
 api.add_resource(GetPackageDetails, '/package-detail')
 api.add_resource(GetAllPackageList, '/all-packages')
+api.add_resource(PackageUpdate, '/package-update')
+
 
 # -----------------------------------------------------------------------
 
