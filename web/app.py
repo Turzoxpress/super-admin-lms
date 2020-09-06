@@ -2414,6 +2414,131 @@ class InstituteUpdate(Resource):
             }
             return jsonify(retJson)
 
+# -- Get Institute Details
+class GetInstituteDetails(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["institute_id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not InstituteExistId(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Institute id not found"
+                    }
+
+                    return jsonify(retJson)
+
+
+
+                result = institutecol.find({"_id": ObjectId(id)})
+                holder = []
+                package_data = {}
+                for i in result:
+                    package_data["id"] = id
+                    package_data["active"] = str(1)
+                    package_data["institute_id"] = str(i["institute_id"])
+                    package_data["password"] = str(i["password"])
+                    package_data["name"] = str(i["name"])
+                    package_data["address"] = str(i["address"])
+                    package_data["email"] = str(i["email"])
+                    package_data["phone"] = str(i["phone"])
+                    package_data["subscription_s_date"] = str(i["subscription_s_date"])
+                    package_data["subscription_e_date"] = str(i["subscription_e_date"])
+                    package_data["last_payment"] = str(i["last_payment"])
+                    package_data["payment_amount"] = str(i["payment_amount"])
+                    package_data["created_at"] = str(i["created_at"])
+                    package_data["updated_at"] = str(i["updated_at"])
+
+
+                    package_data["package_id"] = str(i["package_id"])
+                    package_data["package_title"] = "NSU package"
+                    package_data["package_desc"] = "NSU package for summer semester"
+                    package_data["param_name"] = "Total Student"
+                    package_data["param_quantity"] =  4000
+                    package_data["param_price"] = "500.00"
+
+
+
+
+                retJson = {
+                    "status": "ok",
+                    "msg": package_data
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid institute id"
+                }
+
+                return jsonify(retJson)
+
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
 # -----------------------------------------------------------------------
 
 
@@ -2447,6 +2572,7 @@ api.add_resource(GetPackageParameterList, '/parameters')
 api.add_resource(InstituteCreate, '/institute-create')
 api.add_resource(DeleteFullInstituteCollection, '/delete-full-institute')
 api.add_resource(InstituteUpdate, '/institute-update')
+api.add_resource(GetInstituteDetails, '/institute-detail')
 
 
 
