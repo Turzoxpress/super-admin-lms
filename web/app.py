@@ -1451,6 +1451,33 @@ class GetPackageDetails(Resource):
         return jsonify(retJson)
 
 
+# -- Get All Package List
+class GetAllPackageList(Resource):
+    def get(self):
+        result = packagecol.find({})
+
+        holder = []
+        for i in result:
+            data = {
+                "id": str(i["_id"]),
+                "display": str(i["package"]["display"]),
+                "title": str(i["package"]["title"]),
+                "description": str(i["package"]["description"]),
+                "created_at": str(i["package"]["created_at"]),
+                "updated_at": str(i["package"]["updated_at"]),
+                "type": str(i["package"]["type"]),
+            }
+
+            holder.append(data)
+
+        retJson = {
+            "status": "ok",
+            "msg": holder
+        }
+
+        return jsonify(retJson)
+
+
 # -----------------------------------------------------------------------
 
 
@@ -1476,6 +1503,7 @@ api.add_resource(SuperAdminPasswordResetReedemByEmail, '/password-reset')
 api.add_resource(PackageSave, '/package-save')
 api.add_resource(DeleteFullPackage, '/delete-full-package')
 api.add_resource(GetPackageDetails, '/package-detail')
+api.add_resource(GetAllPackageList, '/all-packages')
 
 # -----------------------------------------------------------------------
 
