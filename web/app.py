@@ -2022,6 +2022,118 @@ class PackageAddNewParameter(Resource):
                 "msg": "Invalid access token"
             }
 
+# -- Parameter list according to Package id
+class GetPackageParameterList(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["package_id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not PackageExist(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Invalid package id"
+                    }
+
+                    return jsonify(retJson)
+
+                result = packagecol.find({"_id": ObjectId(id)})
+
+                parameters = {}
+                for i in result:
+                    parameters = i["parameters"]
+
+                params = []
+                for i in parameters:
+                    data = {
+                        "id": str(i["_id"]),
+                        "name": str(i["name"]),
+                        "quantity": str(i["quantity"]),
+                        "price": str(i["price"]),
+                        "package_id": str(id)
+                    }
+                    params.append(data)
+
+
+
+                retJson = {
+                    "status": "ok",
+                    "msg": params
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
 
 # -----------------------------------------------------------------------
 
@@ -2052,6 +2164,7 @@ api.add_resource(GetAllPackageList, '/all-packages')
 api.add_resource(PackageUpdate, '/package-update')
 api.add_resource(PackageDelete, '/package-delete')
 api.add_resource(PackageAddNewParameter, '/parameter-save')
+api.add_resource(GetPackageParameterList, '/parameters')
 
 # -----------------------------------------------------------------------
 
