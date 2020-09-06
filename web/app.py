@@ -35,6 +35,7 @@ db = client["SuperAdminDB"]
 superad = db["SuperAdmin"]
 tokenbank = db["tokenbank"]
 packagecol = db["packageCollection"]
+institutecol = db["instituteCollection"]
 
 test = db["test"]
 
@@ -2134,6 +2135,157 @@ class GetPackageParameterList(Resource):
             }
             return jsonify(retJson)
 
+def InstituteExistId(id):
+    if institutecol.find({"_id": id}).count() == 0:
+        return False
+    else:
+        return True
+
+def InstituteExist(institute_id):
+    if institutecol.find({"institute_id": institute_id}).count() == 0:
+        return True
+    else:
+        return False
+
+# -- Create institute
+class InstituteCreate(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            package_id = postedData["package_id"]
+            institute_id = postedData["institute_id"]
+            password = postedData["password"]
+            name = postedData["name"]
+            address = postedData["address"]
+            email = postedData["email"]
+            phone = postedData["phone"]
+            subscription_s_date = postedData["subscription_s_date"]
+            subscription_e_date = postedData["subscription_e_date"]
+            last_payment = postedData["last_payment"]
+            payment_amount = postedData["payment_amount"]
+
+
+            #to do
+            # Check id is exist
+            if not PackageExist(ObjectId(package_id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+            if not InstituteExist(institute_id):
+                retJson = {
+                    "status": "validationError",
+                    "msg": {
+                        "institute_id": [
+                            "The institute id has already been taken."
+                        ]
+                    }
+                }
+
+                return jsonify(retJson)
+
+            hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+            # Store username and pw into the database
+            sts = institutecol.insert_one({
+                "package_id": package_id,
+                "institute_id": institute_id,
+                "password": hashed_pw,
+                "name": name,
+                "address": address,
+                "email": email,
+                "phone": phone,
+                "subscription_s_date": subscription_s_date,
+                "subscription_e_date": subscription_e_date,
+                "last_payment": last_payment,
+                "payment_amount": payment_amount,
+                "created_at": datetime.today().strftime('%d-%m-%Y'),
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }).inserted_id
+
+            retJson = {
+                "status": "ok",
+                "msg": str(sts)
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Delete institute collection
+class DeleteFullInstituteCollection(Resource):
+    def get(self):
+        institutecol.drop()
+
+        retJson = {
+            "status": 200,
+            "msg": "All institute collection data deleted successfully!"
+        }
+
+        return jsonify(retJson)
 
 # -----------------------------------------------------------------------
 
@@ -2165,6 +2317,10 @@ api.add_resource(PackageUpdate, '/package-update')
 api.add_resource(PackageDelete, '/package-delete')
 api.add_resource(PackageAddNewParameter, '/parameter-save')
 api.add_resource(GetPackageParameterList, '/parameters')
+api.add_resource(InstituteCreate, '/institute-create')
+api.add_resource(DeleteFullInstituteCollection, '/delete-full-institute')
+
+
 
 # -----------------------------------------------------------------------
 
