@@ -2539,6 +2539,100 @@ class GetInstituteDetails(Resource):
             }
             return jsonify(retJson)
 
+# -- Get All Institute List
+class GetAllInstituteList(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = institutecol.find({})
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "active": 1,
+                    "institute_id": str(i["institute_id"]),
+                    "password": str(i["password"]),
+                    "name": str(i["name"]),
+                    "address": str(i["address"]),
+                    "email": str(i["email"]),
+                    "phone": str(i["phone"]),
+                    "subscription_s_date": str(i["subscription_s_date"]),
+                    "subscription_e_date": str(i["subscription_e_date"]),
+                    "last_payment": str(i["last_payment"]),
+                    "payment_amount": str(i["payment_amount"]),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"]),
+                    "package_id": str(i["package_id"])
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": {
+                    "current_page":1,
+                    "data": holder
+                }
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
 # -----------------------------------------------------------------------
 
 
@@ -2573,6 +2667,7 @@ api.add_resource(InstituteCreate, '/institute-create')
 api.add_resource(DeleteFullInstituteCollection, '/delete-full-institute')
 api.add_resource(InstituteUpdate, '/institute-update')
 api.add_resource(GetInstituteDetails, '/institute-detail')
+api.add_resource(GetAllInstituteList, '/institutes')
 
 
 
