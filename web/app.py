@@ -2287,6 +2287,133 @@ class DeleteFullInstituteCollection(Resource):
 
         return jsonify(retJson)
 
+# -- Create update
+class InstituteUpdate(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            package_id = postedData["package_id"]
+            institute_id = postedData["institute_id"]
+            password = postedData["password"]
+            name = postedData["name"]
+            address = postedData["address"]
+            email = postedData["email"]
+            phone = postedData["phone"]
+            subscription_s_date = postedData["subscription_s_date"]
+            subscription_e_date = postedData["subscription_e_date"]
+            last_payment = postedData["last_payment"]
+            payment_amount = postedData["payment_amount"]
+
+
+            #to do
+            # Check id is exist
+            if not PackageExist(ObjectId(package_id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+            if not InstituteExistId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Institute update failed"
+                }
+
+                return jsonify(retJson)
+
+            hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+
+
+            myquery = {"_id": ObjectId(id)}
+            newvalues = {"$set": {
+                "package_id": package_id,
+                "institute_id": institute_id,
+                "password": hashed_pw,
+                "name": name,
+                "address": address,
+                "email": email,
+                "phone": phone,
+                "subscription_s_date": subscription_s_date,
+                "subscription_e_date": subscription_e_date,
+                "last_payment": last_payment,
+                "payment_amount": payment_amount,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            sts = institutecol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Institute updated successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
 # -----------------------------------------------------------------------
 
 
@@ -2319,6 +2446,7 @@ api.add_resource(PackageAddNewParameter, '/parameter-save')
 api.add_resource(GetPackageParameterList, '/parameters')
 api.add_resource(InstituteCreate, '/institute-create')
 api.add_resource(DeleteFullInstituteCollection, '/delete-full-institute')
+api.add_resource(InstituteUpdate, '/institute-update')
 
 
 
