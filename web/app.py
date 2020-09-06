@@ -22,6 +22,8 @@ from flask_cors import CORS
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from bson import ObjectId
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -32,6 +34,8 @@ client = MongoClient("mongodb://db:27017")
 db = client["SuperAdminDB"]
 superad = db["SuperAdmin"]
 tokenbank = db["tokenbank"]
+packagecol = db["packageCollection"]
+
 test = db["test"]
 
 UPLOAD_FOLDER = 'uploads'
@@ -1265,7 +1269,7 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
             "status": "ok",
             "msg": tempData,
             "email_status": str(response.text)
-            #"tokenStatus": str(isTokenInserted)
+            # "tokenStatus": str(isTokenInserted)
         }
 
         return jsonify(retJosn)
@@ -1292,7 +1296,6 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
             }
 
             return jsonify(retJson)
-
 
         # Check user with email
         if not UserExist(which_user):
@@ -1337,41 +1340,115 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
         retJson = {
             "status": "ok",
             "msg": "Password reset success"
-            #"token_status": str(isTokenDeleted)
+            # "token_status": str(isTokenDeleted)
         }
         return jsonify(retJson)
 
 
-class AWSSender(Resource):
-    def get(self):
-        smtp = smtplib.SMTP('email-smtp.us-east-2.amazonaws.com')
+# -- Save Package
+class PackageSave(Resource):
+    def post(self):
+        postedData = request.get_json()
 
-        smtp.connect('email-smtp.us-east-2.amazonaws.com', 25)
+        # Get the data
+        package = postedData["package"]
+        parameters = postedData["parameters"]
 
-        smtp.starttls()
+        # finding the dynamic paramerters values
+        countT = len(parameters)
 
-        smtp.login('AKIAUWJ6HWYKQOPXBNFT', 'BGY/sFIu1up+j/HvTaCPQQjFRuN3w1v46qpFTroG4j7j')
+        params = []
+        for i in range(countT):
+            data = {
+                "_id": ObjectId(),
+                "name": parameters[i]['name'],
+                "quantity": parameters[i]['quantity'],
+                "price": parameters[i]['price']
+            }
+            params.append(data)
 
-        response = smtp.sendmail('customer_support_lms@brlbd.com', 'turzoxpress@gmail.com', 'welcome')
+        temp_id = packagecol.insert_one({
 
-        return jsonify(str(response))
+            "package": {
+                "display": package['display'],
+                "title": package['title'],
+                "description": package['description'],
+                "type": package['type'],
+                "created_at": datetime.today().strftime('%d-%m-%Y'),
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
 
+            },
+            "parameters": params
 
-class TestPhpRequest(Resource):
-    def get(self):
-        url = "http://tuembd.com/test_mail.php"
-        payload = {
-            "email": "turzoxpress@gmail.com",
-            "token": "sdfsdfsdfdsfsdfdsf"
+        }).inserted_id
+
+        retJson = {
+            "status": "ok",
+            "msg": {
+                "package_id": str(temp_id)
+            }
         }
-        headers = {
-            'Content-Type': 'application/json'
+
+        return jsonify(retJson)
+
+
+# -- Delete package collection
+class DeleteFullPackage(Resource):
+    def get(self):
+        packagecol.drop()
+
+        retJson = {
+            "status": 200,
+            "msg": "All package collection data deleted successfully!"
         }
 
-        x = requests.post(url, headers=headers,
-                          data=payload)
+        return jsonify(retJson)
 
-        return jsonify(str(x.text))
+
+# -- Get Package Details
+class GetPackageDetails(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        id = postedData["package_id"]
+
+        result = packagecol.find({"_id": ObjectId(id)})
+
+        parameters = {}
+        for i in result:
+            parameters = i["parameters"]
+
+        params = []
+        for i in parameters:
+            data = {
+                "param_id": str(i["_id"]),
+                "name": str(i["name"]),
+                "quantity": str(i["quantity"]),
+                "price": str(i["price"])
+            }
+            params.append(data)
+
+        result2 = packagecol.find({"_id": ObjectId(id)})
+        holder = []
+        package_data = {}
+        for i in result2:
+            package_data["id"] = str(i["_id"])
+            package_data["display"] = str(i["package"]["display"])
+            package_data["title"] = str(i["package"]["title"])
+            package_data["description"] = str(i["package"]["description"])
+            package_data["created_at"] = str(i["package"]["created_at"])
+            package_data["updated_at"] = str(i["package"]["updated_at"])
+            package_data["type"] = str(i["package"]["type"])
+            package_data["params"] = params
+            holder.append(package_data)
+
+        retJson = {
+            "status": "ok",
+            "msg": package_data
+        }
+
+        return jsonify(retJson)
 
 
 # -----------------------------------------------------------------------
@@ -1382,6 +1459,7 @@ api.add_resource(RegisterSuperAdmin, '/register_super_admin')
 api.add_resource(ShowAllSuperAdmin, '/show_all_super_admin')
 api.add_resource(DeleteAllData, '/delete_all_data')
 
+# Phase 1
 api.add_resource(SuperAdminLogin, '/authenticate')
 api.add_resource(SuperAdminLogOut, '/logout')
 api.add_resource(UpdateSuperAdminPassword, '/password-update')
@@ -1392,9 +1470,12 @@ api.add_resource(GetSuperAdminAddress, '/user-address')
 api.add_resource(SuperAdminAvatarImageUpload, '/avatar-update')
 api.add_resource(SuperAdminCoverImageUpload, '/cover-img-update')
 api.add_resource(SuperAdminPasswordResetRequestByEmail, '/password-reset-request')
-api.add_resource(AWSSender, '/test_mail')
-api.add_resource(TestPhpRequest, '/test_php')
 api.add_resource(SuperAdminPasswordResetReedemByEmail, '/password-reset')
+
+# Phase 3-4
+api.add_resource(PackageSave, '/package-save')
+api.add_resource(DeleteFullPackage, '/delete-full-package')
+api.add_resource(GetPackageDetails, '/package-detail')
 
 # -----------------------------------------------------------------------
 
