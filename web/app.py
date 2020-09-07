@@ -2245,7 +2245,8 @@ class InstituteCreate(Resource):
                 "last_payment": last_payment,
                 "payment_amount": payment_amount,
                 "created_at": datetime.today().strftime('%d-%m-%Y'),
-                "updated_at": datetime.today().strftime('%d-%m-%Y')
+                "updated_at": datetime.today().strftime('%d-%m-%Y'),
+                "active": 1
 
             }).inserted_id
 
@@ -2478,11 +2479,11 @@ class GetInstituteDetails(Resource):
 
 
                 result = institutecol.find({"_id": ObjectId(id)})
-                holder = []
+                package_id_db = ""
                 package_data = {}
                 for i in result:
                     package_data["id"] = id
-                    package_data["active"] = str(1)
+                    package_data["active"] = str(i["active"])
                     package_data["institute_id"] = str(i["institute_id"])
                     package_data["password"] = str(i["password"])
                     package_data["name"] = str(i["name"])
@@ -2497,14 +2498,18 @@ class GetInstituteDetails(Resource):
                     package_data["updated_at"] = str(i["updated_at"])
 
 
+                    #to do
                     package_data["package_id"] = str(i["package_id"])
-                    package_data["package_title"] = "NSU package"
-                    package_data["package_desc"] = "NSU package for summer semester"
-                    package_data["param_name"] = "Total Student"
-                    package_data["param_quantity"] =  4000
-                    package_data["param_price"] = "500.00"
 
+                    package_id_db = str(i["package_id"])
+                    #package_data["package_title"] = "NSU package"
+                    #package_data["package_desc"] = "NSU package for summer semester"
 
+                result2 = packagecol.find({"_id": ObjectId(package_id_db)})
+
+                for i in result2:
+                    package_data["package_title"] = str(i["package"]["title"])
+                    package_data["package_desc"] = str(i["package"]["description"])
 
 
                 retJson = {
@@ -2588,7 +2593,7 @@ class GetAllInstituteList(Resource):
             for i in result:
                 data = {
                     "id": str(i["_id"]),
-                    "active": 1,
+                    "active": str(i["active"]),
                     "institute_id": str(i["institute_id"]),
                     "password": str(i["password"]),
                     "name": str(i["name"]),
@@ -2633,6 +2638,205 @@ class GetAllInstituteList(Resource):
 
             return jsonify(retJson)
 
+# -- Change institute active status
+class InstituteActiveStatusChange(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            active = postedData["active"]
+
+
+
+            #to do
+
+            if not InstituteExistId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Institute status update failed"
+                }
+
+                return jsonify(retJson)
+
+
+
+
+
+            myquery = {"_id": ObjectId(id)}
+            newvalues = {"$set": {
+                "active": active,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            sts = institutecol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Institute status updated"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Institute Delete
+class InstituteDelete(Resource):
+    def post(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            ################################################################
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["institute_id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not InstituteExist(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Institute delete failed or invalid id"
+                    }
+
+                    return jsonify(retJson)
+
+                myquery = {"_id": ObjectId(id)}
+
+                res = institutecol.delete_one(myquery)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Institute deleted successfully"
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Institute delete failed or invalid id"
+                }
+
+                return jsonify(retJson)
+
+            ##################################################################
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
 # -----------------------------------------------------------------------
 
 
@@ -2668,6 +2872,8 @@ api.add_resource(DeleteFullInstituteCollection, '/delete-full-institute')
 api.add_resource(InstituteUpdate, '/institute-update')
 api.add_resource(GetInstituteDetails, '/institute-detail')
 api.add_resource(GetAllInstituteList, '/institutes')
+api.add_resource(InstituteActiveStatusChange, '/institute-status-update')
+api.add_resource(InstituteDelete, '/institute-delete')
 
 
 
