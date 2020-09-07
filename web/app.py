@@ -1677,6 +1677,81 @@ class GetPackageDetails(Resource):
             }
             return jsonify(retJson)
 
+# -- Get Package Details Special API
+class GetPackageDetailsSpecial(Resource):
+    def post(self):
+
+        postedData = request.get_json()
+
+        # Get the data
+        id = postedData["package_id"]
+        special_key = postedData["special_key"]
+
+        if special_key != "super_admin_lms_2020":
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid special key"
+            }
+            return jsonify(retJson)
+
+        # Check id is valid or not
+        if ObjectId.is_valid(id):
+
+            # Check id is exist
+            if not PackageExist(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+            result = packagecol.find({"_id": ObjectId(id)})
+
+            parameters = {}
+            for i in result:
+                parameters = i["parameters"]
+
+            params = []
+            for i in parameters:
+                data = {
+                    "param_id": str(i["_id"]),
+                    "name": str(i["name"]),
+                    "quantity": str(i["quantity"]),
+                    "price": str(i["price"])
+                }
+                params.append(data)
+
+            result2 = packagecol.find({"_id": ObjectId(id)})
+            holder = []
+            package_data = {}
+            for i in result2:
+                package_data["id"] = str(i["_id"])
+                package_data["display"] = str(i["package"]["display"])
+                package_data["title"] = str(i["package"]["title"])
+                package_data["description"] = str(i["package"]["description"])
+                package_data["created_at"] = str(i["package"]["created_at"])
+                package_data["updated_at"] = str(i["package"]["updated_at"])
+                package_data["type"] = str(i["package"]["type"])
+                package_data["params"] = params
+                holder.append(package_data)
+
+            retJson = {
+                "status": "ok",
+                "msg": package_data
+            }
+
+            return jsonify(retJson)
+
+
+        else:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid package id"
+            }
+
+            return jsonify(retJson)
+
 
 # -- Package Update
 class PackageUpdate(Resource):
@@ -2023,6 +2098,7 @@ class PackageAddNewParameter(Resource):
                 "msg": "Invalid access token"
             }
 
+
 # -- Parameter list according to Package id
 class GetPackageParameterList(Resource):
     def post(self):
@@ -2133,6 +2209,68 @@ class GetPackageParameterList(Resource):
                 "status": "failed",
                 "msg": "Invalid access token"
             }
+            return jsonify(retJson)
+
+# -- Parameter list according to Package id Special API
+class GetPackageParameterListSpecial(Resource):
+    def post(self):
+
+        postedData = request.get_json()
+
+        # Get the data
+        id = postedData["package_id"]
+        special_key = postedData["special_key"]
+
+        if special_key != "super_admin_lms_2020":
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid special key"
+            }
+            return jsonify(retJson)
+
+        # Check id is valid or not
+        if ObjectId.is_valid(id):
+
+            # Check id is exist
+            if not PackageExist(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+            result = packagecol.find({"_id": ObjectId(id)})
+
+            parameters = {}
+            for i in result:
+                parameters = i["parameters"]
+
+            params = []
+            for i in parameters:
+                data = {
+                    "id": str(i["_id"]),
+                    "name": str(i["name"]),
+                    "quantity": str(i["quantity"]),
+                    "price": str(i["price"]),
+                    "package_id": str(id)
+                }
+                params.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": params
+            }
+
+            return jsonify(retJson)
+
+
+        else:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid package id"
+            }
+
             return jsonify(retJson)
 
 def InstituteExistId(id):
@@ -2544,6 +2682,83 @@ class GetInstituteDetails(Resource):
             }
             return jsonify(retJson)
 
+# -- Get Institute Details Special API
+class GetInstituteDetailsSpecial(Resource):
+    def post(self):
+
+        postedData = request.get_json()
+
+        # Get the data
+        id = postedData["institute_id"]
+        special_key = postedData["special_key"]
+
+        if special_key != "super_admin_lms_2020":
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid special key"
+            }
+            return jsonify(retJson)
+
+        # Check id is valid or not
+        if ObjectId.is_valid(id):
+
+            # Check id is exist
+            if not InstituteExistId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Institute id not found"
+                }
+
+                return jsonify(retJson)
+
+            result = institutecol.find({"_id": ObjectId(id)})
+            package_id_db = ""
+            package_data = {}
+            for i in result:
+                package_data["id"] = id
+                package_data["active"] = str(i["active"])
+                package_data["institute_id"] = str(i["institute_id"])
+                package_data["password"] = str(i["password"])
+                package_data["name"] = str(i["name"])
+                package_data["address"] = str(i["address"])
+                package_data["email"] = str(i["email"])
+                package_data["phone"] = str(i["phone"])
+                package_data["subscription_s_date"] = str(i["subscription_s_date"])
+                package_data["subscription_e_date"] = str(i["subscription_e_date"])
+                package_data["last_payment"] = str(i["last_payment"])
+                package_data["payment_amount"] = str(i["payment_amount"])
+                package_data["created_at"] = str(i["created_at"])
+                package_data["updated_at"] = str(i["updated_at"])
+
+                # to do
+                package_data["package_id"] = str(i["package_id"])
+
+                package_id_db = str(i["package_id"])
+                # package_data["package_title"] = "NSU package"
+                # package_data["package_desc"] = "NSU package for summer semester"
+
+            result2 = packagecol.find({"_id": ObjectId(package_id_db)})
+
+            for i in result2:
+                package_data["package_title"] = str(i["package"]["title"])
+                package_data["package_desc"] = str(i["package"]["description"])
+
+            retJson = {
+                "status": "ok",
+                "msg": package_data
+            }
+
+            return jsonify(retJson)
+
+
+        else:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid institute id"
+            }
+
+            return jsonify(retJson)
+
 # -- Get All Institute List
 class GetAllInstituteList(Resource):
     def get(self):
@@ -2875,9 +3090,17 @@ api.add_resource(GetAllInstituteList, '/institutes')
 api.add_resource(InstituteActiveStatusChange, '/institute-status-update')
 api.add_resource(InstituteDelete, '/institute-delete')
 
+#special key for phase 3-4
+api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+api.add_resource(GetPackageParameterListSpecial, '/parameters-special')
+api.add_resource(GetInstituteDetailsSpecial, '/institute-detail-special')
+
+
+
+
 
 
 # -----------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0')
