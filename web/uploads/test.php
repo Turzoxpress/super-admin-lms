@@ -26,6 +26,8 @@ To remove all sub-directories and files: rm -r /path/to/dir
 //----------- For MongoDB backup
 sudo docker-compose exec -T db mongodump --quiet --archive --gzip --db SuperAdminDB> dump.gz
 
+docker-compose exec -T db sh -c 'mongodump --archive' > db.dump
+
 
 sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
 
