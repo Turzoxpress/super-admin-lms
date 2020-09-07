@@ -24,12 +24,14 @@ To remove all sub-directories and files: rm -r /path/to/dir
 
 
 //----------- For MongoDB backup
-sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dump.gz
+sudo docker-compose exec -T db mongodump --quiet --archive --gzip --db SuperAdminDB> dump.gz
 
 
 sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
 
+--------------------------------------
 
+sudo git pull https://github.com/Turzoxpress/super-admin-lms master
 
 
 
