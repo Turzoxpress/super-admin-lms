@@ -42,4 +42,50 @@ sudo git pull https://github.com/Turzoxpress/super-admin-lms master
 -------------------------------------------
 sudo su -
 
+--------------------------------------------------------
+
+
+To show only running containers use the given command:
+
+docker ps
+
+To show all containers use the given command:
+
+docker ps -a
+
+To show the latest created container (includes all states) use the given command:
+
+docker ps -l
+
+To show n last created containers (includes all states) use the given command:
+
+docker ps -n=-1
+
+To display total file sizes use the given command:
+
+docker ps -s
+
+The content presented above is from docker.com.
+
+In the new version of Docker, commands are updated, and some management commands are added:
+
+docker container ls
+
+It is used to list all the running containers.
+
+docker container ls -a
+
+And then, if you want to clean them all,
+
+docker rm $(docker ps -aq)
+
+It is used to list all the containers created irrespective of its state.
+
+And to stop all the Docker containers (force)
+
+docker rm -f $(docker ps -a -q)
+
+Here the container is the management command.
+
+
 ?>
