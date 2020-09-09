@@ -3098,7 +3098,7 @@ api.add_resource(GetInstituteDetailsSpecial, '/institute-detail-special')
 
 
 
-
+#--
 
 # -----------------------------------------------------------------------
 
