@@ -1678,6 +1678,7 @@ class GetPackageDetails(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Get Package Details Special API
 class GetPackageDetailsSpecial(Resource):
     def post(self):
@@ -2047,7 +2048,6 @@ class PackageAddNewParameter(Resource):
                 for i in result:
                     dbparams = i["parameters"]
 
-
                 for i in dbparams:
                     data = {
                         "_id": str(i["_id"]),
@@ -2056,7 +2056,6 @@ class PackageAddNewParameter(Resource):
                         "price": str(i["price"])
                     }
                     params.append(data)
-
 
                 myquery = {"_id": ObjectId(id)}
 
@@ -2178,8 +2177,6 @@ class GetPackageParameterList(Resource):
                     }
                     params.append(data)
 
-
-
                 retJson = {
                     "status": "ok",
                     "msg": params
@@ -2211,6 +2208,7 @@ class GetPackageParameterList(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Parameter list according to Package id Special API
 class GetPackageParameterListSpecial(Resource):
@@ -2274,17 +2272,20 @@ class GetPackageParameterListSpecial(Resource):
 
             return jsonify(retJson)
 
+
 def InstituteExistId(id):
     if institutecol.find({"_id": id}).count() == 0:
         return False
     else:
         return True
 
+
 def InstituteExist(institute_id):
     if institutecol.find({"institute_id": institute_id}).count() == 0:
         return True
     else:
         return False
+
 
 # -- Create institute
 class InstituteCreate(Resource):
@@ -2345,8 +2346,7 @@ class InstituteCreate(Resource):
             last_payment = postedData["last_payment"]
             payment_amount = postedData["payment_amount"]
 
-
-            #to do
+            # to do
             # Check id is exist
             if not PackageExist(ObjectId(package_id)):
                 retJson = {
@@ -2415,6 +2415,7 @@ class InstituteCreate(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Delete institute collection
 class DeleteFullInstituteCollection(Resource):
     def get(self):
@@ -2426,6 +2427,7 @@ class DeleteFullInstituteCollection(Resource):
         }
 
         return jsonify(retJson)
+
 
 # -- Create update
 class InstituteUpdate(Resource):
@@ -2487,8 +2489,7 @@ class InstituteUpdate(Resource):
             last_payment = postedData["last_payment"]
             payment_amount = postedData["payment_amount"]
 
-
-            #to do
+            # to do
             # Check id is exist
             if not PackageExist(ObjectId(package_id)):
                 retJson = {
@@ -2507,8 +2508,6 @@ class InstituteUpdate(Resource):
                 return jsonify(retJson)
 
             hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
-
-
 
             myquery = {"_id": ObjectId(id)}
             newvalues = {"$set": {
@@ -2553,6 +2552,7 @@ class InstituteUpdate(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Get Institute Details
 class GetInstituteDetails(Resource):
@@ -2615,8 +2615,6 @@ class GetInstituteDetails(Resource):
 
                     return jsonify(retJson)
 
-
-
                 result = institutecol.find({"_id": ObjectId(id)})
                 package_id_db = ""
                 package_data = {}
@@ -2636,20 +2634,18 @@ class GetInstituteDetails(Resource):
                     package_data["created_at"] = str(i["created_at"])
                     package_data["updated_at"] = str(i["updated_at"])
 
-
-                    #to do
+                    # to do
                     package_data["package_id"] = str(i["package_id"])
 
                     package_id_db = str(i["package_id"])
-                    #package_data["package_title"] = "NSU package"
-                    #package_data["package_desc"] = "NSU package for summer semester"
+                    # package_data["package_title"] = "NSU package"
+                    # package_data["package_desc"] = "NSU package for summer semester"
 
                 result2 = packagecol.find({"_id": ObjectId(package_id_db)})
 
                 for i in result2:
                     package_data["package_title"] = str(i["package"]["title"])
                     package_data["package_desc"] = str(i["package"]["description"])
-
 
                 retJson = {
                     "status": "ok",
@@ -2682,6 +2678,7 @@ class GetInstituteDetails(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Get Institute Details Special API
 class GetInstituteDetailsSpecial(Resource):
@@ -2760,6 +2757,7 @@ class GetInstituteDetailsSpecial(Resource):
 
             return jsonify(retJson)
 
+
 # -- Get All Institute List
 class GetAllInstituteList(Resource):
     def get(self):
@@ -2830,7 +2828,7 @@ class GetAllInstituteList(Resource):
             retJson = {
                 "status": "ok",
                 "msg": {
-                    "current_page":1,
+                    "current_page": 1,
                     "data": holder
                 }
             }
@@ -2853,6 +2851,7 @@ class GetAllInstituteList(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Change institute active status
 class InstituteActiveStatusChange(Resource):
@@ -2904,9 +2903,7 @@ class InstituteActiveStatusChange(Resource):
             id = postedData["id"]
             active = postedData["active"]
 
-
-
-            #to do
+            # to do
 
             if not InstituteExistId(ObjectId(id)):
                 retJson = {
@@ -2915,10 +2912,6 @@ class InstituteActiveStatusChange(Resource):
                 }
 
                 return jsonify(retJson)
-
-
-
-
 
             myquery = {"_id": ObjectId(id)}
             newvalues = {"$set": {
@@ -2953,6 +2946,7 @@ class InstituteActiveStatusChange(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Institute Delete
 class InstituteDelete(Resource):
@@ -3061,11 +3055,14 @@ def TypeExist(typename):
         return True
 
 
+def TypeExistWithId(id):
+    if usertypecol.find({"_id": id}).count() == 0:
+        return False
+    else:
+        return True
 
 
-
-
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # -- Create New User Type
 class CreateUserType(Resource):
     def post(self):
@@ -3168,10 +3165,7 @@ class CreateUserType(Resource):
 # -- Delete User Type Collection
 class DeleteUserType(Resource):
     def get(self):
-
         usertypecol.drop()
-
-
 
         retJson = {
             "status": 200,
@@ -3243,7 +3237,7 @@ class GetUserTypeList(Resource):
                 holder.append(data)
 
             retJson = {
-                "status": "ok",
+                "status": 200,
                 "data": holder
             }
 
@@ -3269,6 +3263,111 @@ class GetUserTypeList(Resource):
             return jsonify(retJson)
 
 
+# -- View Single User Type
+class ViewSingleUserType(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+
+            postedData = request.get_json()
+            # Get the data
+            id = postedData["id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not TypeExistWithId(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "User Type with this id not found"
+                    }
+
+                    return jsonify(retJson)
+
+                result = usertypecol.find({"_id": ObjectId(id)})
+                package_id_db = ""
+                package_data = {}
+                for i in result:
+                    package_data["id"] = id
+                    package_data["typename"] = str(i["typename"])
+                    package_data["active"] = str(i["active"])
+                    package_data["create"] = str(i["create"])
+                    package_data["view"] = str(i["view"])
+                    package_data["update"] = str(i["update"])
+                    package_data["delete"] = str(i["delete"])
+                    package_data["created_at"] = str(i["created_at"])
+
+                retJson = {
+                    "status": 200,
+                    "msg": package_data
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid user type id"
+                }
+
+                return jsonify(retJson)
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
 
 
 # -----------------------------------------------------------------------
@@ -3309,28 +3408,27 @@ api.add_resource(GetAllInstituteList, '/institutes')
 api.add_resource(InstituteActiveStatusChange, '/institute-status-update')
 api.add_resource(InstituteDelete, '/institute-delete')
 
-#special key for Phase 3-4
+# special key for Phase 3-4
 api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 api.add_resource(GetPackageParameterListSpecial, '/parameters-special')
 api.add_resource(GetInstituteDetailsSpecial, '/institute-detail-special')
 
-
-#Phase 2
+# Phase 2
 api.add_resource(CreateUserType, '/CreateUserType')
 api.add_resource(DeleteUserType, '/DeleteUserType')
 api.add_resource(GetUserTypeList, '/GetUserTypeList')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+api.add_resource(ViewSingleUserType, '/ViewSingleUserType')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 
 
-
-#--
+# --
 
 # -----------------------------------------------------------------------
 
