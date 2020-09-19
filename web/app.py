@@ -3114,6 +3114,7 @@ class CreateUserType(Resource):
 
             # Get the data
             typename = postedData["typename"]
+            active = postedData["active"]
             create = postedData["create"]
             view = postedData["view"]
             update = postedData["update"]
@@ -3129,6 +3130,7 @@ class CreateUserType(Resource):
             # Store New Type into the database
             usertypecol.insert_one({
                 "typename": typename,
+                "active": active,
                 "create": create,
                 "view": view,
                 "update": update,
@@ -3139,6 +3141,110 @@ class CreateUserType(Resource):
             retJson = {
                 "status": 200,
                 "msg": "New User Type added successfully!"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
+# -- Delete User Type Collection
+class DeleteUserType(Resource):
+    def get(self):
+
+        usertypecol.drop()
+
+
+
+        retJson = {
+            "status": 200,
+            "msg": "All User Type Collection data deleted successfully!"
+        }
+
+        return jsonify(retJson)
+
+
+# -- Get User Type List
+class GetUserTypeList(Resource):
+    def get(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = usertypecol.find({})
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "typename": str(i["typename"]),
+                    "active": str(i["active"]),
+                    "create": str(i["create"]),
+                    "view": str(i["view"]),
+                    "update": str(i["update"]),
+                    "delete": str(i["delete"]),
+                    "created": str(i["created_at"])
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "data": holder
             }
 
             return jsonify(retJson)
@@ -3211,6 +3317,8 @@ api.add_resource(GetInstituteDetailsSpecial, '/institute-detail-special')
 
 #Phase 2
 api.add_resource(CreateUserType, '/CreateUserType')
+api.add_resource(DeleteUserType, '/DeleteUserType')
+api.add_resource(GetUserTypeList, '/GetUserTypeList')
 #api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 #api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 #api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
