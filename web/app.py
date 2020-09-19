@@ -36,6 +36,7 @@ superad = db["SuperAdmin"]
 tokenbank = db["tokenbank"]
 packagecol = db["packageCollection"]
 institutecol = db["instituteCollection"]
+usertypecol = db["userTypeCollection"]
 
 test = db["test"]
 
@@ -3052,6 +3053,118 @@ class InstituteDelete(Resource):
                 "msg": "Invalid access token"
             }
 
+
+def TypeExist(typename):
+    if usertypecol.find({"typename": typename}).count() == 0:
+        return False
+    else:
+        return True
+
+
+
+
+
+
+#----------------------------------------------------------------------
+# -- Create New User Type
+class CreateUserType(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            typename = postedData["typename"]
+            create = postedData["create"]
+            view = postedData["view"]
+            update = postedData["update"]
+            delete = postedData["delete"]
+
+            if TypeExist(typename):
+                retJson = {
+                    'status': 301,
+                    'msg': 'Type already exists,try with a new one!'
+                }
+                return jsonify(retJson)
+
+            # Store New Type into the database
+            usertypecol.insert_one({
+                "typename": typename,
+                "create": create,
+                "view": view,
+                "update": update,
+                "delete": delete,
+                "created_at": datetime.today().strftime('%d-%m-%Y')
+            })
+
+            retJson = {
+                "status": 200,
+                "msg": "New User Type added successfully!"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
+
+
 # -----------------------------------------------------------------------
 
 
@@ -3090,11 +3203,22 @@ api.add_resource(GetAllInstituteList, '/institutes')
 api.add_resource(InstituteActiveStatusChange, '/institute-status-update')
 api.add_resource(InstituteDelete, '/institute-delete')
 
-#special key for phase 3-4
+#special key for Phase 3-4
 api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 api.add_resource(GetPackageParameterListSpecial, '/parameters-special')
 api.add_resource(GetInstituteDetailsSpecial, '/institute-detail-special')
 
+
+#Phase 2
+api.add_resource(CreateUserType, '/CreateUserType')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
+#api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 
 
 
