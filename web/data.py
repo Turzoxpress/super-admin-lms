@@ -26,7 +26,7 @@ class Welcome(Resource):
     def get(self):
         # Show a welcome greetings
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "Welcome LMS super admin! Your API server is working successfully!"
         }
         return jsonify(retJson)
@@ -65,7 +65,7 @@ class RegisterSuperAdmin(Resource):
         })
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "New Super Admin added successfully!"
         }
 
@@ -98,7 +98,7 @@ class SuperAdminLogin(Resource):
         if not UserExist(username):
             retJson = {
                 'status': 301,
-                'msg': 'No user with with username'
+                'msg': 'No user exist with this username'
             }
             return jsonify(retJson)
 
@@ -128,7 +128,7 @@ class ShowAllSuperAdmin(Resource):
         for i in data:
             holder.append(i)
         retJson = {
-            "status": 200,
+            "status": "ok",
             "data": str(holder)
         }
 
@@ -141,7 +141,7 @@ class DeleteAllData(Resource):
         superad.drop()
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "All collection data deleted successfully!"
         }
 
@@ -170,7 +170,7 @@ class Test(Resource):
             holder.append(i)
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": str(holder)
         }
 
@@ -256,7 +256,7 @@ class TokenCheck(Resource):
         temp = jwt.decode(parts[1], str(secret_key),  algorithms='HS256')
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "received_token": parts[1],
             "data": temp
         }

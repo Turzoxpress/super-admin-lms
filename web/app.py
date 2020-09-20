@@ -51,7 +51,7 @@ class Welcome(Resource):
     def get(self):
         # Show a welcome greetings
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "Welcome Turzo! Your Python & MongoDB based API server is working successfully!"
         }
         return jsonify(retJson)
@@ -99,7 +99,7 @@ class RegisterSuperAdmin(Resource):
         })
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "New Super Admin added successfully!"
         }
 
@@ -132,7 +132,7 @@ class ShowAllSuperAdmin(Resource):
         for i in data:
             holder.append(i)
         retJson = {
-            "status": 200,
+            "status": "ok",
             "data": str(holder)
         }
 
@@ -145,7 +145,7 @@ class DeleteAllData(Resource):
         superad.drop()
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "All collection data deleted successfully!"
         }
 
@@ -187,7 +187,7 @@ class SuperAdminLogin(Resource):
         if not UserExist(email):
             retJson = {
                 'status': 301,
-                'msg': 'No user with with username'
+                'msg': 'No user exist with this username'
             }
             return jsonify(retJson)
 
@@ -233,7 +233,7 @@ def verifyToken():
     temp = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
 
     retJson = {
-        "status": 200,
+        "status": "ok",
         "received_token": parts[1],
         "data": temp
     }
@@ -1549,7 +1549,7 @@ class DeleteFullPackage(Resource):
         packagecol.drop()
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "All package collection data deleted successfully!"
         }
 
@@ -2423,7 +2423,7 @@ class DeleteFullInstituteCollection(Resource):
         institutecol.drop()
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "All institute collection data deleted successfully!"
         }
 
@@ -3138,7 +3138,7 @@ class CreateUserType(Resource):
             })
 
             retJson = {
-                "status": 200,
+                "status": "ok",
                 "msg": "New User Type added successfully!"
             }
 
@@ -3170,7 +3170,7 @@ class DeleteUserType(Resource):
         usertypecol.drop()
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "All User Type Collection data deleted successfully!"
         }
 
@@ -3241,7 +3241,7 @@ class GetUserTypeList(Resource):
                 holder.append(data)
 
             retJson = {
-                "status": 200,
+                "status": "ok",
                 "data": holder
             }
 
@@ -3344,7 +3344,7 @@ class ViewSingleUserType(Resource):
 
 
                 retJson = {
-                    "status": 200,
+                    "status": "ok",
                     "msg": package_data
                 }
 
@@ -3640,10 +3640,1072 @@ class RegisterNewUserNormal(Resource):
         })
 
         retJson = {
-            "status": 200,
+            "status": "ok",
             "msg": "New user created successfully!"
         }
 
+        return jsonify(retJson)
+
+
+
+def verifyPwNormal(email, password):
+    if not UserExistNormal(email):
+        return False
+
+    hashed_pw = normalusercol.find({
+        "email": email
+    })[0]["password"]
+
+    if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
+        return True
+    else:
+        return False
+
+# -- Normal user login
+class NormalUserLogin(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        email = postedData["email"]
+        password = postedData["password"]
+
+        # Check user with email
+        if not UserExistNormal(email):
+            retJson = {
+                'status': 301,
+                'msg': 'No user exist with this username'
+            }
+            return jsonify(retJson)
+
+        # Check password
+        if not verifyPwNormal(email, password):
+            retJson = {
+                'status': 301,
+                'msg': 'Wrong username or password'
+            }
+            return jsonify(retJson)
+
+        userid = normalusercol.find({
+            "email": email
+        })[0]["_id"]
+
+        # -- Generate an access token
+        retJson = {
+            'status': 200,
+            'msg': {
+                "id": str(userid),
+                "token": generateAuthToken(email)
+            }
+        }
+        return jsonify(retJson)
+
+# -- Normal User Password Update
+class UpdateNormalUserPassword(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # ---------------
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+            old_password = postedData["old_password"]
+            password = postedData["password"]
+            password_confirmation = postedData["password_confirmation"]
+            if password != password_confirmation:
+                retJson = {
+                    "status": "failed",
+                    "msg": "New password & confirm password does not matched"
+                }
+                return jsonify(retJson)
+
+            else:
+
+                # Check user with email
+                if not UserExistNormal(email):
+                    retJson = {
+                        'status': 301,
+                        'msg': 'No user exist with this username'
+                    }
+                    return jsonify(retJson)
+
+                # return 'Ready to do next job'
+                hashed_pw = normalusercol.find({
+                    "email": email
+                })[0]["password"]
+
+                if bcrypt.hashpw(old_password.encode('utf8'), hashed_pw) == hashed_pw:
+                    # return 'Ready to do next job'
+                    hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {
+                        "password": hashed_pw,
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
+
+                    normalusercol.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Password updated"
+                    }
+                    return jsonify(retJson)
+
+                else:
+                    # return 'Old password is wrong!'
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Old password is wrong!"
+                    }
+                    return jsonify(retJson)
+
+
+        # --------------------------------
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Normal User Address Update
+class NormalUserAddressUpdate(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+
+
+            # get the data
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+            address = postedData["address"]
+            post_office = postedData["post_office"]
+            post_code = postedData["post_code"]
+            thana = postedData["thana"]
+            district = postedData["district"]
+            division = postedData["division"]
+            per_address = postedData["per_address"]
+            per_post_office = postedData["per_post_office"]
+            per_post_code = postedData["per_post_code"]
+            per_thana = postedData["per_thana"]
+            per_district = postedData["per_district"]
+            per_division = postedData["per_division"]
+
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this username'
+                }
+                return jsonify(retJson)
+
+
+
+            myquery = {"email": which_user}
+            newvalues = {"$set": {
+                "address": address,
+                "post_office": post_office,
+                "post_code": post_code,
+                "thana": thana,
+                "district": district,
+                "division": division,
+                "per_address": per_address,
+                "per_post_office": per_post_office,
+                "per_post_code": per_post_code,
+                "per_thana": per_thana,
+                "per_district": per_district,
+                "per_division": per_division,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            normalusercol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Address updated"
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Normal User Profile Info Update
+class NormalUserProfileInfoUpdate(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # Check user with email
+            if not UserExist(which_user):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            # get the data
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+            fname = postedData["fname"]
+            lname = postedData["lname"]
+            mobile = postedData["mobile"]
+            date_of_birth = postedData["date_of_birth"]
+            place_of_birth = postedData["place_of_birth"]
+            gender = postedData["gender"]
+            marital_status = postedData["marital_status"]
+            nationality = postedData["nationality"]
+            nid = postedData["nid"]
+            religion = postedData["religion"]
+            designation = postedData["designation"]
+
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this username'
+                }
+                return jsonify(retJson)
+
+            myquery = {"email": which_user}
+            newvalues = {"$set": {
+                "username": fname,
+                "fname": fname,
+                "lname": lname,
+                "mobile": mobile,
+                "date_of_birth": date_of_birth,
+                "place_of_birth": place_of_birth,
+                "marital_status": marital_status,
+                "nationality": nationality,
+                "nid": nid,
+                "gender": gender,
+                "religion": religion,
+                "designation": designation,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            normalusercol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Profile info updated"
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Normal User avatar image upload
+class NormalUserAvatarImageUpload(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # Check user with email
+            if not UserExistNormal(which_user):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+                # work to do
+            if request.method == 'POST':
+                # check if the post request has the file part
+                if 'avatar_img' not in request.files:
+                    flash('No file part')
+                    return redirect(request.url)
+                file = request.files['avatar_img']
+                # if user does not select file, browser also
+                # submit an empty part without filename
+                if file.filename == '':
+                    flash('No selected file')
+                    return redirect(request.url)
+                if file and allowed_file(file.filename):
+                    filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    # return jsonify({"status": "uploaded"})
+                    client_id = 'cc2c0f99f595668'
+                    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+
+                    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+
+                    url = "https://api.imgur.com/3/upload.json"
+                    # im1 = Image.open(file)
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    j1 = requests.post(
+                        url,
+                        headers=headers,
+                        data={
+                            'key': api_key,
+                            'image': b64encode(open(filepath, 'rb').read()),
+                            'type': 'base64',
+                            'name': '1.jpg',
+                            'title': 'Picture no. 1'
+                        }
+                    )
+                    data = json.loads(j1.text)['data']
+
+                    # return data['link']
+                    # return (str(j1))
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {
+                        "avatar_img": data['link'],
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
+
+                    normalusercol.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Avatar image updated"
+                    }
+                    return jsonify(retJson)
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+# -- Normal User cover image upload
+class NormalUserCoverImageUpload(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # Check user with email
+            if not UserExist(which_user):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+                # work to do
+            if request.method == 'POST':
+                # check if the post request has the file part
+                if 'cover_img' not in request.files:
+                    flash('No file part')
+                    return redirect(request.url)
+                file = request.files['cover_img']
+                # if user does not select file, browser also
+                # submit an empty part without filename
+                if file.filename == '':
+                    flash('No selected file')
+                    return redirect(request.url)
+                if file and allowed_file(file.filename):
+                    filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    # return jsonify({"status": "uploaded"})
+                    client_id = 'cc2c0f99f595668'
+                    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+
+                    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+
+                    url = "https://api.imgur.com/3/upload.json"
+                    # im1 = Image.open(file)
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    j1 = requests.post(
+                        url,
+                        headers=headers,
+                        data={
+                            'key': api_key,
+                            'image': b64encode(open(filepath, 'rb').read()),
+                            'type': 'base64',
+                            'name': '1.jpg',
+                            'title': 'Picture no. 1'
+                        }
+                    )
+                    data = json.loads(j1.text)['data']
+
+                    # return data['link']
+                    # return (str(j1))
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {
+                        "cover_img": data['link'],
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
+
+                    normalusercol.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Cover image updated"
+                    }
+                    return jsonify(retJson)
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+# -- Get Normal User profile info
+class GetNormalUserProfileInfo(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # get the data
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this username'
+                }
+                return jsonify(retJson)
+
+            result = normalusercol.find({"email": email})
+            holder = []
+            user_data = {}
+            for i in result:
+                # user_data = {}
+                user_data["id"] = str(i["_id"])
+                user_data["username"] = str(i["username"])
+                user_data["email"] = str(i["email"])
+                user_data["avatar_img"] = str(i["avatar_img"])
+                user_data["cover_img"] = str(i["cover_img"])
+                user_data["created_at"] = str(i["created_at"])
+                user_data["fname"] = str(i["fname"])
+                user_data["lname"] = str(i["lname"])
+                user_data["mobile"] = str(i["mobile"])
+                user_data["marital_status"] = str(i["marital_status"])
+                user_data["date_of_birth"] = str(i["date_of_birth"])
+                user_data["place_of_birth"] = str(i["place_of_birth"])
+                user_data["gender"] = str(i["gender"])
+                user_data["religion"] = str(i["religion"])
+                user_data["nationality"] = str(i["nationality"])
+                user_data["nid"] = str(i["nid"])
+                user_data["designation"] = str(i["designation"])
+                user_data["role"] = str(i["role"])
+                # holder.append(user_data)
+
+            retJson = {
+                "status": "ok",
+                "msg": user_data
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Get Normal User address
+class GetNormalUserAddress(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # get the data
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this username'
+                }
+                return jsonify(retJson)
+
+            result = normalusercol.find({"email": email})
+            holder = []
+            user_data = {}
+            for i in result:
+                # user_data = {}
+                user_data["id"] = str(i["_id"])
+                user_data["user_id"] = str(i["_id"])
+                user_data["address"] = str(i["address"])
+                user_data["post_office"] = str(i["post_office"])
+                user_data["post_code"] = str(i["post_code"])
+                user_data["thana"] = str(i["thana"])
+                user_data["district"] = str(i["district"])
+                user_data["division"] = str(i["division"])
+                user_data["per_address"] = str(i["per_address"])
+                user_data["per_post_office"] = str(i["per_post_office"])
+                user_data["per_post_code"] = str(i["per_post_code"])
+                user_data["per_thana"] = str(i["per_thana"])
+                user_data["per_district"] = str(i["per_district"])
+                user_data["per_division"] = str(i["per_division"])
+                # holder.append(user_data)
+
+            retJson = {
+                "status": "ok",
+                "msg": user_data
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+class NormalUserPasswordResetRequestByEmail(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        email = postedData["email"]
+
+        # Check user with email
+        if not UserExistNormal(email):
+            retJson = {
+                "status": "failed",
+                "msg": "Email not exists"
+            }
+
+            return jsonify(retJson)
+
+        iat = datetime.utcnow()
+        exp = iat + timedelta(days=30)
+        nbf = iat
+        payload = {
+            'exp': exp,
+            'iat': iat,
+            'nbf': nbf,
+            # 'aud': str(email)
+        }
+        if email:
+            payload['sub'] = email
+
+        tempData = jwt.encode(
+            payload,
+            str(secret_key),
+            algorithm='HS256'
+        ).decode('utf-8')
+
+        data_to_insert = {"email": email, "token": tempData}
+
+        isTokenInserted = tokenbank.insert_one(data_to_insert)
+
+        url = "http://tuembd.com/test_mail.php?email=" + email + "&token=" + tempData
+
+        payload = {
+            'email': email,
+            'token': tempData
+        }
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        # response = requests.request("POST", url, headers=headers, data=payload)
+
+        response = requests.post(
+            url,
+            headers=headers,
+            data={
+                'email': email,
+                'token': tempData
+            }
+        )
+        # data = json.loads(response.text)['data']
+
+        # print(response.text.encode('utf8'))
+        retJosn = {
+            "status": "ok",
+            "msg": tempData,
+            "email_status": str(response.text)
+            # "tokenStatus": str(isTokenInserted)
+        }
+
+        return jsonify(retJosn)
+
+class NormalUserPasswordResetReedemByEmail(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        email = postedData["email"]
+        token = postedData["token"]
+        password = postedData["password"]
+        password_confirmation = postedData["password_confirmation"]
+
+        payload = jwt.decode(token, str(secret_key), algorithms='HS256')
+        # return payload['sub']
+        which_user = payload['sub']
+
+        # Check user with email
+        if not TokenExist(token):
+            retJson = {
+                "status": "failed",
+                "msg": "Password reset token is not valid"
+            }
+
+            return jsonify(retJson)
+
+        # Check user with email
+        if not UserExistNormal(email):
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        if password != password_confirmation:
+            retJson = {
+                "status": "failed",
+                "msg": "Password & confirm password doesn't matched!"
+            }
+
+            return jsonify(retJson)
+
+
+
+        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+        myquery = {"email": email}
+        newvalues = {"$set": {
+            "password": hashed_pw,
+            "updated_at": datetime.today().strftime('%d-%m-%Y')
+        }}
+
+        normalusercol.update_one(myquery, newvalues)
+
+        deleteToken = {"token": token}
+
+        isTokenDeleted = tokenbank.delete_one(deleteToken)
+
+        retJson = {
+            "status": "ok",
+            "msg": "Password reset success"
+            # "token_status": str(isTokenDeleted)
+        }
         return jsonify(retJson)
 # -----------------------------------------------------------------------
 
@@ -3696,6 +4758,26 @@ api.add_resource(ViewSingleUserType, '/ViewSingleUserType')
 api.add_resource(UpdateUserType, '/UpdateUserType')
 api.add_resource(UpdateUserActivation, '/UpdateUserActivation')
 api.add_resource(RegisterNewUserNormal, '/RegisterNewUserNormal')
+api.add_resource(NormalUserLogin, '/NormalUserLogin')
+api.add_resource(UpdateNormalUserPassword, '/UpdateNormalUserPassword')
+api.add_resource(NormalUserAddressUpdate, '/NormalUserAddressUpdate')
+api.add_resource(NormalUserProfileInfoUpdate, '/NormalUserProfileInfoUpdate')
+api.add_resource(NormalUserAvatarImageUpload, '/NormalUserAvatarImageUpload')
+api.add_resource(NormalUserCoverImageUpload, '/NormalUserCoverImageUpload')
+api.add_resource(GetNormalUserProfileInfo, '/GetNormalUserProfileInfo')
+api.add_resource(GetNormalUserAddress, '/GetNormalUserAddress')
+api.add_resource(NormalUserPasswordResetRequestByEmail, '/NormalUserPasswordResetRequestByEmail')
+api.add_resource(NormalUserPasswordResetReedemByEmail, '/NormalUserPasswordResetReedemByEmail')
+
+
+
+
+
+
+
+
+
+
 
 
 # api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
