@@ -37,6 +37,7 @@ tokenbank = db["tokenbank"]
 packagecol = db["packageCollection"]
 institutecol = db["instituteCollection"]
 usertypecol = db["userTypeCollection"]
+normalusercol = db["normalUserCollection"]
 
 test = db["test"]
 
@@ -3132,7 +3133,8 @@ class CreateUserType(Resource):
                 "view": view,
                 "update": update,
                 "delete": delete,
-                "created_at": datetime.today().strftime('%d-%m-%Y')
+                "created_at": datetime.today().strftime('%d-%m-%Y'),
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
             })
 
             retJson = {
@@ -3231,7 +3233,9 @@ class GetUserTypeList(Resource):
                     "view": str(i["view"]),
                     "update": str(i["update"]),
                     "delete": str(i["delete"]),
-                    "created": str(i["created_at"])
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
+
                 }
 
                 holder.append(data)
@@ -3307,7 +3311,6 @@ class ViewSingleUserType(Resource):
 
                 return jsonify(retJson)
 
-
             postedData = request.get_json()
             # Get the data
             id = postedData["id"]
@@ -3336,6 +3339,9 @@ class ViewSingleUserType(Resource):
                     package_data["update"] = str(i["update"])
                     package_data["delete"] = str(i["delete"])
                     package_data["created_at"] = str(i["created_at"])
+                    package_data["updated_at"] = str(i["updated_at"])
+
+
 
                 retJson = {
                     "status": 200,
@@ -3370,6 +3376,275 @@ class ViewSingleUserType(Resource):
             return jsonify(retJson)
 
 
+# -- Update user type
+class UpdateUserType(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            create = postedData["create"]
+            view = postedData["view"]
+            update = postedData["update"]
+            delete = postedData["delete"]
+
+            # Check id is exist
+            if not TypeExistWithId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "User Type with this id not found"
+                }
+
+                return jsonify(retJson)
+
+            myquery = {"_id": ObjectId(id)}
+            newvalues = {"$set": {
+                "create": create,
+                "view": view,
+                "update": update,
+                "delete": delete,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }}
+
+            sts = usertypecol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "User Type updated successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
+# -- Update user active type
+class UpdateUserActivation(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            active = postedData["active"]
+
+
+            # Check id is exist
+            if not TypeExistWithId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "User Type with this id not found"
+                }
+
+                return jsonify(retJson)
+
+            myquery = {"_id": ObjectId(id)}
+            newvalues = {"$set": {
+                "active": active,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }}
+
+            sts = usertypecol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "User Type updated successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
+def UserExistNormal(username):
+    if normalusercol.find({"email": username}).count() == 0:
+        return False
+    else:
+        return True
+
+
+# -- Register new normal user
+class RegisterNewUserNormal(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Get the data
+        email = postedData["email"]
+        password = postedData["password"]
+
+        if UserExistNormal(email):
+            retJson = {
+                'status': 301,
+                'msg': 'User already exists, try with a new one!'
+            }
+            return jsonify(retJson)
+
+        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+        # Store username and pw into the database
+        normalusercol.insert_one({
+            "email": email,
+            "password": hashed_pw,
+            "role": "Normal User",
+            "created_at": datetime.today().strftime('%d-%m-%Y'),
+
+            "username": "",
+            "fname": "",
+            "lname": "",
+            "mobile": "",
+            "date_of_birth": "",
+            "place_of_birth": "",
+            "marital_status": "",
+            "nationality": "",
+            "nid": "",
+            "gender": "",
+            "religion": "",
+            "designation": "",
+
+            "address": "",
+            "post_office": "",
+            "post_code": "",
+            "thana": "",
+            "district": "",
+            "division": "",
+            "per_address": "",
+            "per_post_office": "",
+            "per_post_code": "",
+            "per_thana": "",
+            "per_district": "",
+            "per_division": "",
+
+            "avatar_img": "",
+            "cover_img": "",
+
+            "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+
+        })
+
+        retJson = {
+            "status": 200,
+            "msg": "New user created successfully!"
+        }
+
+        return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -3418,6 +3693,11 @@ api.add_resource(CreateUserType, '/CreateUserType')
 api.add_resource(DeleteUserType, '/DeleteUserType')
 api.add_resource(GetUserTypeList, '/GetUserTypeList')
 api.add_resource(ViewSingleUserType, '/ViewSingleUserType')
+api.add_resource(UpdateUserType, '/UpdateUserType')
+api.add_resource(UpdateUserActivation, '/UpdateUserActivation')
+api.add_resource(RegisterNewUserNormal, '/RegisterNewUserNormal')
+
+
 # api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 # api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
 # api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
