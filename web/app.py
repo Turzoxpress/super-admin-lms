@@ -3113,10 +3113,11 @@ class CreateUserType(Resource):
             # Get the data
             typename = postedData["typename"]
             active = postedData["active"]
-            create = postedData["create"]
-            view = postedData["view"]
-            update = postedData["update"]
-            delete = postedData["delete"]
+            user = postedData["user"]
+            institute = postedData["institute"]
+            package = postedData["package"]
+            bill = postedData["bill"]
+            payment = postedData["payment"]
 
             if TypeExist(typename):
                 retJson = {
@@ -3129,10 +3130,11 @@ class CreateUserType(Resource):
             usertypecol.insert_one({
                 "typename": typename,
                 "active": active,
-                "create": create,
-                "view": view,
-                "update": update,
-                "delete": delete,
+                "user": user,
+                "institute": institute,
+                "package": package,
+                "bill": bill,
+                "payment": payment,
                 "created_at": datetime.today().strftime('%d-%m-%Y'),
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
             })
@@ -3229,12 +3231,15 @@ class GetUserTypeList(Resource):
                     "id": str(i["_id"]),
                     "typename": str(i["typename"]),
                     "active": str(i["active"]),
-                    "create": str(i["create"]),
-                    "view": str(i["view"]),
-                    "update": str(i["update"]),
-                    "delete": str(i["delete"]),
+                    "user": str(i["user"]),
+                    "institute": str(i["institute"]),
+                    "package": str(i["package"]),
+                    "bill": str(i["bill"]),
+                    "payment": str(i["payment"]),
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"])
+
+
 
                 }
 
@@ -3334,12 +3339,15 @@ class ViewSingleUserType(Resource):
                     package_data["id"] = id
                     package_data["typename"] = str(i["typename"])
                     package_data["active"] = str(i["active"])
-                    package_data["create"] = str(i["create"])
-                    package_data["view"] = str(i["view"])
-                    package_data["update"] = str(i["update"])
-                    package_data["delete"] = str(i["delete"])
+                    package_data["user"] = str(i["user"])
+                    package_data["institute"] = str(i["institute"])
+                    package_data["package"] = str(i["package"])
+                    package_data["bill"] = str(i["bill"])
+                    package_data["payment"] = str(i["payment"])
                     package_data["created_at"] = str(i["created_at"])
                     package_data["updated_at"] = str(i["updated_at"])
+
+
 
 
 
@@ -3424,10 +3432,12 @@ class UpdateUserType(Resource):
 
             # Get the data
             id = postedData["id"]
-            create = postedData["create"]
-            view = postedData["view"]
-            update = postedData["update"]
-            delete = postedData["delete"]
+            user = postedData["user"]
+            institute = postedData["institute"]
+            package = postedData["package"]
+            bill = postedData["bill"]
+            payment = postedData["payment"]
+
 
             # Check id is exist
             if not TypeExistWithId(ObjectId(id)):
@@ -3440,10 +3450,11 @@ class UpdateUserType(Resource):
 
             myquery = {"_id": ObjectId(id)}
             newvalues = {"$set": {
-                "create": create,
-                "view": view,
-                "update": update,
-                "delete": delete,
+                "user": user,
+                "institute": institute,
+                "package": package,
+                "bill": bill,
+                "payment": payment,
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
 
             }}

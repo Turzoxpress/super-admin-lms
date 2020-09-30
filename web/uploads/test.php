@@ -40,6 +40,11 @@ sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
 
 sudo git pull https://github.com/Turzoxpress/super-admin-lms master
 
+-- alternative
+sudo git fetch --all
+sudo git reset --hard origin/master
+sudo git pull origin master
+
 
 -------------------------------------------
 sudo su -
