@@ -185,11 +185,51 @@ class SuperAdminLogin(Resource):
 
         # Check user with email
         if not UserExist(email):
-            retJson = {
+            """retJson = {
                 'status': 301,
                 'msg': 'No user exist with this username'
             }
+            return jsonify(retJson)"""
+
+            ## check another db
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this username'
+                }
+                return jsonify(retJson)
+
+            # Check password
+            if not verifyPwNormal(email, password):
+                retJson = {
+                    'status': 301,
+                    'msg': 'Wrong username or password'
+                }
+                return jsonify(retJson)
+
+            userid = normalusercol.find({
+                "email": email
+            })[0]["_id"]
+
+            role = normalusercol.find({
+                "email": email
+            })[0]["role"]
+
+            # -- Generate an access token
+            retJson = {
+                'status': 200,
+                'msg': {
+                    "id": str(userid),
+                    "role": str(role),
+                    "token": generateAuthToken(email)
+                }
+            }
             return jsonify(retJson)
+
+
+
+            #############################
 
         # Check password
         if not verifyPw(email, password):
@@ -203,11 +243,16 @@ class SuperAdminLogin(Resource):
             "email": email
         })[0]["_id"]
 
+        role = superad.find({
+            "email": email
+        })[0]["role"]
+
         # -- Generate an access token
         retJson = {
             'status': "ok",
             'msg': {
                 "id": str(userid),
+                "role": str(role),
                 "token": generateAuthToken(email)
             }
         }
@@ -3166,6 +3211,7 @@ class CreateUserType(Resource):
             return jsonify(retJson)
 
 
+
 # -- Delete User Type Collection
 class DeleteUserType(Resource):
     def get(self):
@@ -3597,13 +3643,22 @@ class RegisterNewUserNormal(Resource):
         postedData = request.get_json()
 
         # Get the data
+        fname = postedData["fname"]
+        lname = postedData["lname"]
         email = postedData["email"]
+        mobile = postedData["mobile"]
+        username = postedData["username"]
+        role = postedData["role"]
         password = postedData["password"]
+        date_of_birth = postedData["date_of_birth"]
+        gender = postedData["gender"]
+
+
 
         if UserExistNormal(email):
             retJson = {
                 'status': 301,
-                'msg': 'User already exists, try with a new one!'
+                'msg': 'User already exists with this email, try with a new one!'
             }
             return jsonify(retJson)
 
@@ -3613,19 +3668,19 @@ class RegisterNewUserNormal(Resource):
         normalusercol.insert_one({
             "email": email,
             "password": hashed_pw,
-            "role": "Normal User",
+            "role": role,
             "created_at": datetime.today().strftime('%d-%m-%Y'),
 
-            "username": "",
-            "fname": "",
-            "lname": "",
-            "mobile": "",
-            "date_of_birth": "",
+            "username": username,
+            "fname": fname,
+            "lname": lname,
+            "mobile": mobile,
+            "date_of_birth": date_of_birth,
             "place_of_birth": "",
             "marital_status": "",
             "nationality": "",
             "nid": "",
-            "gender": "",
+            "gender": gender,
             "religion": "",
             "designation": "",
 
@@ -3671,6 +3726,118 @@ def verifyPwNormal(email, password):
         return True
     else:
         return False
+
+
+# -- Get All User List
+class GetAllUserNormalList(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = normalusercol.find({})
+
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "email": str(i["email"]),
+                    "password": str(i["password"]),
+                    "role": str(i["role"]),
+                    "created_at": str(i["created_at"]),
+                    "username": str(i["username"]),
+                    "fname": str(i["fname"]),
+                    "lname": str(i["lname"]),
+                    "mobile": str(i["mobile"]),
+                    "date_of_birth": str(i["date_of_birth"]),
+                    "place_of_birth": str(i["place_of_birth"]),
+                    "marital_status": str(i["marital_status"]),
+                    "nationality": str(i["nationality"]),
+                    "nid": str(i["nid"]),
+                    "gender": str(i["gender"]),
+                    "religion": str(["religion"]),
+                    "designation": str(i["designation"]),
+                    "address": str(i["address"]),
+                    "post_office": str(i["post_office"]),
+                    "post_code": str(i["post_code"]),
+                    "thana": str(i["thana"]),
+                    "district": str(i["district"]),
+                    "division": str(i["division"]),
+                    "per_address": str(i["per_address"]),
+                    "per_post_office": str(i["per_post_office"]),
+                    "per_post_code": str(i["per_post_code"]),
+                    "per_thana": str(i["per_thana"]),
+                    "per_district": str(i["per_district"]),
+                    "per_division": str(i["per_division"]),
+                    "avatar_img": str(i["avatar_img"]),
+                    "cover_img": str(i["cover_img"]),
+                    "updated_at": str(i["updated_at"])
+
+
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": holder
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
 
 # -- Normal user login
 class NormalUserLogin(Resource):
@@ -4769,6 +4936,7 @@ api.add_resource(ViewSingleUserType, '/ViewSingleUserType')
 api.add_resource(UpdateUserType, '/UpdateUserType')
 api.add_resource(UpdateUserActivation, '/UpdateUserActivation')
 api.add_resource(RegisterNewUserNormal, '/RegisterNewUserNormal')
+api.add_resource(GetAllUserNormalList, '/GetAllUserNormalList')
 api.add_resource(NormalUserLogin, '/NormalUserLogin')
 api.add_resource(UpdateNormalUserPassword, '/UpdateNormalUserPassword')
 api.add_resource(NormalUserAddressUpdate, '/NormalUserAddressUpdate')
@@ -4782,26 +4950,6 @@ api.add_resource(NormalUserPasswordResetReedemByEmail, '/NormalUserPasswordReset
 
 
 
-
-
-
-
-
-
-
-
-
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-# api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-
-
-# --
 
 # -----------------------------------------------------------------------
 
