@@ -1,0 +1,25 @@
+#Step 1 - database backup
+sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dump.gz
+//sudo docker-compose exec -T db mongodump --quiet --archive --gzip --db SuperAdminDB> dump.gz
+
+ --- if permission issue occurs
+ sudo chmod -R 777 /www/store
+ or
+ sudo chmod -R 777 ./
+
+#Step 2 - shutdown the docker containers
+
+sudo docker stop $(docker ps -a -q)
+
+sudo docker rm $(docker ps -a -q)
+
+#Step 3 - fetching the updates from github
+sudo git pull https://github.com/Turzoxpress/super-admin-lms master
+
+#Step 4 - start the docker containers
+ sudo docker-compose build
+ sudo docker-compose up
+ sudo docker-compose up -d (deattached mode)
+
+#Step 5 - restore the database
+sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
