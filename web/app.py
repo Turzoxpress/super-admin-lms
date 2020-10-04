@@ -5018,6 +5018,8 @@ class CreateNewInvoice(Resource):
                 "month": month,
                 "year": year,
                 "amount": amount,
+                "file_path":"",
+                "status": "Pending",
                 "generated_by": generated_by,
                 "created_at": datetime.today().strftime('%d-%m-%Y'),
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
@@ -5093,6 +5095,8 @@ class GetAllInvoiceList(Resource):
 
             result = billcol.find({})
 
+
+
             holder = []
             for i in result:
                 data = {
@@ -5102,6 +5106,8 @@ class GetAllInvoiceList(Resource):
                     "month": str(i["month"]),
                     "year": str(i["year"]),
                     "amount": str(i["amount"]),
+                    "file_path": str(i["file_path"]),
+                    "status": str(i["status"]),
                     "generated_by": str(i["generated_by"]),
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"])
@@ -5207,6 +5213,7 @@ class ViewSingleInvoice(Resource):
 
                 result = billcol.find({"_id": ObjectId(id)})
 
+
                 invoice_data = {}
                 for i in result:
                     invoice_data["id"] = str(i["_id"])
@@ -5215,6 +5222,8 @@ class ViewSingleInvoice(Resource):
                     invoice_data["month"] = str(i["month"])
                     invoice_data["year"] = str(i["year"])
                     invoice_data["amount"] = str(i["amount"])
+                    invoice_data["file_path"] = str(i["file_path"])
+                    invoice_data["status"] = str(i["status"])
                     invoice_data["generated_by"] = str(i["generated_by"])
                     invoice_data["created_at"] = str(i["created_at"])
                     invoice_data["updated_at"] = str(i["updated_at"])
@@ -5251,7 +5260,121 @@ class ViewSingleInvoice(Resource):
             }
             return jsonify(retJson)
 
+# -- Delete all invoice data
+class DeleteInvoiceCollection(Resource):
+    def get(self):
+        billcol.drop()
 
+        retJson = {
+            "status": "ok",
+            "msg": "All collection data deleted successfully!"
+        }
+
+        return jsonify(retJson)
+
+# -- Update invoice
+class UpdateInvoice(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            institute_id = postedData["institute_id"]
+            institute_name = postedData["institute_name"]
+            month = postedData["month"]
+            year = postedData["year"]
+            amount = postedData["amount"]
+            generated_by = postedData["generated_by"]
+
+            # Check id is exist
+            if not InvoiceExistWithId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invoice with this id not found"
+                }
+
+                return jsonify(retJson)
+
+            myquery = {"_id": ObjectId(id)}
+            newvalues = {"$set": {
+                "institute_id": institute_id,
+                "institute_name": institute_name,
+                "month": month,
+                "year": year,
+                "amount": amount,
+                "generated_by": generated_by,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }}
+
+            sts = billcol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Invoice updated successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -5320,6 +5443,10 @@ api.add_resource(GetAllInstituteIDs, '/GetAllInstituteIDs')
 api.add_resource(CreateNewInvoice, '/CreateNewInvoice')
 api.add_resource(GetAllInvoiceList, '/GetAllInvoiceList')
 api.add_resource(ViewSingleInvoice, '/ViewSingleInvoice')
+api.add_resource(DeleteInvoiceCollection, '/DeleteInvoiceCollection')
+api.add_resource(UpdateInvoice, '/UpdateInvoice')
+
+
 
 # -----------------------------------------------------------------------
 
