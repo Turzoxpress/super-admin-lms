@@ -38,6 +38,7 @@ packagecol = db["packageCollection"]
 institutecol = db["instituteCollection"]
 usertypecol = db["userTypeCollection"]
 normalusercol = db["normalUserCollection"]
+billcol = db["billCollection"]
 
 test = db["test"]
 
@@ -4885,6 +4886,273 @@ class NormalUserPasswordResetReedemByEmail(Resource):
             # "token_status": str(isTokenDeleted)
         }
         return jsonify(retJson)
+
+
+# -- Get All Institute IDs
+class GetAllInstituteIDs(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = institutecol.find({})
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "active": str(i["active"]),
+                    "institute_id": str(i["institute_id"])
+
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": {
+                    "current_page": 1,
+                    "data": holder
+                }
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+# -- Create new invoice
+class CreateNewInvoice(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            institute_id = postedData["institute_id"]
+            institute_name = postedData["institute_name"]
+            month = postedData["month"]
+            year = postedData["year"]
+            amount = postedData["amount"]
+            generated_by = postedData["generated_by"]
+
+
+            #
+            sts = billcol.insert_one({
+                "institute_id": institute_id,
+                "institute_name": institute_name,
+                "month": month,
+                "year": year,
+                "amount": amount,
+                "generated_by": generated_by,
+                "created_at": datetime.today().strftime('%d-%m-%Y'),
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }).inserted_id
+
+            retJson = {
+                "status": "ok",
+                "msg": str(sts)
+            }
+
+            return jsonify(retJson)
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Get All Invoice list
+class GetAllInvoiceList(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = billcol.find({})
+
+
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "institute_id": str(i["institute_id"]),
+                    "institute_name": str(i["institute_name"]),
+                    "month": str(i["month"]),
+                    "year": str(i["year"]),
+                    "amount": str(i["amount"]),
+                    "generated_by": str(i["generated_by"]),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": {
+                    "current_page": 1,
+                    "data": holder
+                }
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -4947,6 +5215,13 @@ api.add_resource(GetNormalUserProfileInfo, '/GetNormalUserProfileInfo')
 api.add_resource(GetNormalUserAddress, '/GetNormalUserAddress')
 api.add_resource(NormalUserPasswordResetRequestByEmail, '/NormalUserPasswordResetRequestByEmail')
 api.add_resource(NormalUserPasswordResetReedemByEmail, '/NormalUserPasswordResetReedemByEmail')
+
+# Phase 5
+api.add_resource(GetAllInstituteIDs, '/GetAllInstituteIDs')
+api.add_resource(CreateNewInvoice, '/CreateNewInvoice')
+api.add_resource(GetAllInvoiceList, '/GetAllInvoiceList')
+
+
 
 
 
