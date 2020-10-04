@@ -228,8 +228,6 @@ class SuperAdminLogin(Resource):
             }
             return jsonify(retJson)
 
-
-
             #############################
 
         # Check password
@@ -3212,7 +3210,6 @@ class CreateUserType(Resource):
             return jsonify(retJson)
 
 
-
 # -- Delete User Type Collection
 class DeleteUserType(Resource):
     def get(self):
@@ -3285,8 +3282,6 @@ class GetUserTypeList(Resource):
                     "payment": str(i["payment"]),
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"])
-
-
 
                 }
 
@@ -3394,10 +3389,6 @@ class ViewSingleUserType(Resource):
                     package_data["created_at"] = str(i["created_at"])
                     package_data["updated_at"] = str(i["updated_at"])
 
-
-
-
-
                 retJson = {
                     "status": "ok",
                     "msg": package_data
@@ -3484,7 +3475,6 @@ class UpdateUserType(Resource):
             package = postedData["package"]
             bill = postedData["bill"]
             payment = postedData["payment"]
-
 
             # Check id is exist
             if not TypeExistWithId(ObjectId(id)):
@@ -3585,7 +3575,6 @@ class UpdateUserActivation(Resource):
             id = postedData["id"]
             active = postedData["active"]
 
-
             # Check id is exist
             if not TypeExistWithId(ObjectId(id)):
                 retJson = {
@@ -3654,8 +3643,6 @@ class RegisterNewUserNormal(Resource):
         date_of_birth = postedData["date_of_birth"]
         gender = postedData["gender"]
 
-
-
         if UserExistNormal(email):
             retJson = {
                 'status': 301,
@@ -3703,7 +3690,6 @@ class RegisterNewUserNormal(Resource):
 
             "updated_at": datetime.today().strftime('%d-%m-%Y')
 
-
         })
 
         retJson = {
@@ -3712,7 +3698,6 @@ class RegisterNewUserNormal(Resource):
         }
 
         return jsonify(retJson)
-
 
 
 def verifyPwNormal(email, password):
@@ -3774,7 +3759,6 @@ class GetAllUserNormalList(Resource):
 
             result = normalusercol.find({})
 
-
             holder = []
             for i in result:
                 data = {
@@ -3811,7 +3795,6 @@ class GetAllUserNormalList(Resource):
                     "cover_img": str(i["cover_img"]),
                     "updated_at": str(i["updated_at"])
 
-
                 }
 
                 holder.append(data)
@@ -3839,6 +3822,7 @@ class GetAllUserNormalList(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Normal user login
 class NormalUserLogin(Resource):
@@ -3878,6 +3862,7 @@ class NormalUserLogin(Resource):
             }
         }
         return jsonify(retJson)
+
 
 # -- Normal User Password Update
 class UpdateNormalUserPassword(Resource):
@@ -4002,6 +3987,7 @@ class UpdateNormalUserPassword(Resource):
 
             return jsonify(retJson)
 
+
 # -- Normal User Address Update
 class NormalUserAddressUpdate(Resource):
     def post(self):
@@ -4050,8 +4036,6 @@ class NormalUserAddressUpdate(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
-
-
             # get the data
             postedData = request.get_json()
 
@@ -4077,8 +4061,6 @@ class NormalUserAddressUpdate(Resource):
                     'msg': 'No user exist with this username'
                 }
                 return jsonify(retJson)
-
-
 
             myquery = {"email": which_user}
             newvalues = {"$set": {
@@ -4126,6 +4108,7 @@ class NormalUserAddressUpdate(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Normal User Profile Info Update
 class NormalUserProfileInfoUpdate(Resource):
@@ -4255,6 +4238,7 @@ class NormalUserProfileInfoUpdate(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Normal User avatar image upload
 class NormalUserAvatarImageUpload(Resource):
@@ -4643,6 +4627,7 @@ class GetNormalUserProfileInfo(Resource):
 
             return jsonify(retJson)
 
+
 # -- Get Normal User address
 class GetNormalUserAddress(Resource):
     def post(self):
@@ -4754,6 +4739,7 @@ class GetNormalUserAddress(Resource):
 
             return jsonify(retJson)
 
+
 class NormalUserPasswordResetRequestByEmail(Resource):
     def post(self):
         postedData = request.get_json()
@@ -4824,6 +4810,7 @@ class NormalUserPasswordResetRequestByEmail(Resource):
 
         return jsonify(retJosn)
 
+
 class NormalUserPasswordResetReedemByEmail(Resource):
     def post(self):
         postedData = request.get_json()
@@ -4863,8 +4850,6 @@ class NormalUserPasswordResetReedemByEmail(Resource):
             }
 
             return jsonify(retJson)
-
-
 
         hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
@@ -5026,7 +5011,6 @@ class CreateNewInvoice(Resource):
             amount = postedData["amount"]
             generated_by = postedData["generated_by"]
 
-
             #
             sts = billcol.insert_one({
                 "institute_id": institute_id,
@@ -5062,6 +5046,7 @@ class CreateNewInvoice(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Get All Invoice list
 class GetAllInvoiceList(Resource):
@@ -5108,8 +5093,6 @@ class GetAllInvoiceList(Resource):
 
             result = billcol.find({})
 
-
-
             holder = []
             for i in result:
                 data = {
@@ -5153,6 +5136,122 @@ class GetAllInvoiceList(Resource):
             }
 
             return jsonify(retJson)
+
+
+def InvoiceExistWithId(id):
+    if billcol.find({"_id": id}).count() == 0:
+        return False
+    else:
+        return True
+
+
+# -- View Single Invoice
+class ViewSingleInvoice(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+            # Get the data
+            id = postedData["id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not InvoiceExistWithId(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Invoice with this id not found"
+                    }
+
+                    return jsonify(retJson)
+
+                result = billcol.find({"_id": ObjectId(id)})
+
+                invoice_data = {}
+                for i in result:
+                    invoice_data["id"] = str(i["_id"])
+                    invoice_data["institute_id"] = str(i["institute_id"])
+                    invoice_data["institute_name"] = str(i["institute_name"])
+                    invoice_data["month"] = str(i["month"])
+                    invoice_data["year"] = str(i["year"])
+                    invoice_data["amount"] = str(i["amount"])
+                    invoice_data["generated_by"] = str(i["generated_by"])
+                    invoice_data["created_at"] = str(i["created_at"])
+                    invoice_data["updated_at"] = str(i["updated_at"])
+
+                retJson = {
+                    "status": "ok",
+                    "msg": invoice_data
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid invoice id"
+                }
+
+                return jsonify(retJson)
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
 # -----------------------------------------------------------------------
 
 
@@ -5220,11 +5319,7 @@ api.add_resource(NormalUserPasswordResetReedemByEmail, '/NormalUserPasswordReset
 api.add_resource(GetAllInstituteIDs, '/GetAllInstituteIDs')
 api.add_resource(CreateNewInvoice, '/CreateNewInvoice')
 api.add_resource(GetAllInvoiceList, '/GetAllInvoiceList')
-
-
-
-
-
+api.add_resource(ViewSingleInvoice, '/ViewSingleInvoice')
 
 # -----------------------------------------------------------------------
 
