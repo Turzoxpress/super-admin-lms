@@ -2325,6 +2325,8 @@ def InstituteExistId(id):
         return True
 
 
+
+
 def InstituteExist(institute_id):
     if institutecol.find({"institute_id": institute_id}).count() == 0:
         return True
@@ -5375,6 +5377,319 @@ class UpdateInvoice(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
+# -- Update invoice approval
+class UpdateInvoiceApprovalStatus(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+            status = postedData["status"]
+
+            # Check id is exist
+            if not InvoiceExistWithId(ObjectId(id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invoice with this id not found"
+                }
+
+                return jsonify(retJson)
+
+            myquery = {"_id": ObjectId(id)}
+            newvalues = {"$set": {
+                "status": status,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }}
+
+            sts = billcol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Invoice approved successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Get All Institute list with Invoice
+class GetAllInstituteListWithInvoice(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = billcol.find({})
+
+
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "institute_id": str(i["institute_id"]),
+                    "institute_name": str(i["institute_name"]),
+                    "month": str(i["month"]),
+                    "year": str(i["year"]),
+                    "amount": str(i["amount"]),
+                    "file_path": str(i["file_path"]),
+                    "status": str(i["status"]),
+                    "generated_by": str(i["generated_by"]),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": {
+                    "current_page": 1,
+                    "data": holder
+                }
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+def InstituteExistStringId(id):
+    if institutecol.find({"institute_id": id}).count() == 0:
+        return False
+    else:
+        return True
+
+# -- Get all invoice of an institute
+class GetAllInvoicesSingleInstitute(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            institute_id_string = postedData["institute_id_string"]
+
+            # Check id is exist
+            if not InstituteExistStringId(institute_id_string):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Institute not found"
+                }
+
+                return jsonify(retJson)
+
+            result = institutecol.find({"institute_id": institute_id_string})
+            package_id_db = ""
+            package_data = {}
+
+            for i in result:
+                package_data["id"] = str(i["_id"])
+                package_data["institute_id"] = str(i["institute_id"])
+                package_data["name"] = str(i["name"])
+                package_data["address"] = str(i["address"])
+                package_data["email"] = str(i["email"])
+                package_data["phone"] = str(i["phone"])
+                package_data["created_at"] = str(i["created_at"])
+                package_data["updated_at"] = str(i["updated_at"])
+
+            result2 = billcol.find({"institute_id": institute_id_string})
+
+            holder = []
+            for i in result2:
+                data = {
+                    "id": str(i["_id"]),
+                    "institute_id": str(i["institute_id"]),
+                    "institute_name": str(i["institute_name"]),
+                    "month": str(i["month"]),
+                    "year": str(i["year"]),
+                    "amount": str(i["amount"]),
+                    "file_path": str(i["file_path"]),
+                    "status": str(i["status"]),
+                    "generated_by": str(i["generated_by"]),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": {
+                    "details": package_data,
+                    "data": holder
+                }
+            }
+
+            return jsonify(retJson)
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -5445,6 +5760,12 @@ api.add_resource(GetAllInvoiceList, '/GetAllInvoiceList')
 api.add_resource(ViewSingleInvoice, '/ViewSingleInvoice')
 api.add_resource(DeleteInvoiceCollection, '/DeleteInvoiceCollection')
 api.add_resource(UpdateInvoice, '/UpdateInvoice')
+api.add_resource(UpdateInvoiceApprovalStatus, '/UpdateInvoiceApprovalStatus')
+api.add_resource(GetAllInstituteListWithInvoice, '/GetAllInstituteListWithInvoice')
+api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute')
+
+
+
 
 
 
