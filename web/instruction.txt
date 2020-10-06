@@ -34,3 +34,7 @@ sudo git pull https://github.com/Turzoxpress/super-admin-lms master
 
 #Step 5 - restore the database
 sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
+
+#Step 6
+1.Restart apache
+ sudo service apache2 restart
