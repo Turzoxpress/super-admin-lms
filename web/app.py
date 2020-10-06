@@ -4034,9 +4034,7 @@ class NormalUserAddressUpdate(Resource):
         try:
             # *******************************************
             # *******************************************
-            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-            # return payload['sub']
-            which_user = payload['sub']
+
 
             # get the data
             postedData = request.get_json()
@@ -4064,7 +4062,7 @@ class NormalUserAddressUpdate(Resource):
                 }
                 return jsonify(retJson)
 
-            myquery = {"email": which_user}
+            myquery = {"email": email}
             newvalues = {"$set": {
                 "address": address,
                 "post_office": post_office,
@@ -4155,19 +4153,6 @@ class NormalUserProfileInfoUpdate(Resource):
 
         try:
             # *******************************************
-            # *******************************************
-            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-            # return payload['sub']
-            which_user = payload['sub']
-
-            # Check user with email
-            if not UserExist(which_user):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
 
             # get the data
             postedData = request.get_json()
@@ -4194,7 +4179,7 @@ class NormalUserProfileInfoUpdate(Resource):
                 }
                 return jsonify(retJson)
 
-            myquery = {"email": which_user}
+            myquery = {"email": email}
             newvalues = {"$set": {
                 "username": fname,
                 "fname": fname,
@@ -4287,15 +4272,15 @@ class NormalUserAvatarImageUpload(Resource):
         try:
             # *******************************************
             # *******************************************
-            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-            # return payload['sub']
-            which_user = payload['sub']
+            email = request.form['email']
+
+
 
             # Check user with email
-            if not UserExistNormal(which_user):
+            if not UserExistNormal(email):
                 retJson = {
                     "status": "failed",
-                    "msg": "Invalid access token"
+                    "msg": "User not found"
                 }
 
                 return jsonify(retJson)
@@ -4340,7 +4325,7 @@ class NormalUserAvatarImageUpload(Resource):
 
                     # return data['link']
                     # return (str(j1))
-                    myquery = {"email": which_user}
+                    myquery = {"email": email}
                     newvalues = {"$set": {
                         "avatar_img": data['link'],
                         "updated_at": datetime.today().strftime('%d-%m-%Y')
@@ -4423,15 +4408,13 @@ class NormalUserCoverImageUpload(Resource):
         try:
             # *******************************************
             # *******************************************
-            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
-            # return payload['sub']
-            which_user = payload['sub']
+            email = request.form['email']
 
             # Check user with email
-            if not UserExist(which_user):
+            if not UserExistNormal(email):
                 retJson = {
                     "status": "failed",
-                    "msg": "Invalid access token"
+                    "msg": "User not found"
                 }
 
                 return jsonify(retJson)
@@ -4476,7 +4459,7 @@ class NormalUserCoverImageUpload(Resource):
 
                     # return data['link']
                     # return (str(j1))
-                    myquery = {"email": which_user}
+                    myquery = {"email": email}
                     newvalues = {"$set": {
                         "cover_img": data['link'],
                         "updated_at": datetime.today().strftime('%d-%m-%Y')
