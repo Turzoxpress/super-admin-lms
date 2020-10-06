@@ -1,3 +1,12 @@
+#Step 0
+1.Stop apache
+ sudo service apache2 stop
+2. pull backend from github
+sudo git pull https://github.com/Turzoxpress/super-admin-lms master
+
+3. Delete existing dump.gz file from db folder
+sudo rm -r dump.gz
+
 #Step 1 - database backup
 sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dump.gz
 //sudo docker-compose exec -T db mongodump --quiet --archive --gzip --db SuperAdminDB> dump.gz
@@ -8,6 +17,8 @@ sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dum
  sudo chmod -R 777 ./
 
 #Step 2 - shutdown the docker containers
+
+sudo chmod 666 /var/run/docker.sock
 
 sudo docker stop $(docker ps -a -q)
 

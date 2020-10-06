@@ -5455,6 +5455,18 @@ class UpdateInvoiceApprovalStatus(Resource):
             }
             return jsonify(retJson)
 
+def GetInstituteContact(id):
+    contact = institutecol.find({
+        "institute_id": id
+    })[0]["phone"]
+    return contact
+
+def GetInstituteEmail(id):
+    email = institutecol.find({
+        "institute_id": id
+    })[0]["email"]
+    return email
+
 # -- Get All Institute list with Invoice
 class GetAllInstituteListWithInvoice(Resource):
     def get(self):
@@ -5513,6 +5525,8 @@ class GetAllInstituteListWithInvoice(Resource):
                     "amount": str(i["amount"]),
                     "file_path": str(i["file_path"]),
                     "status": str(i["status"]),
+                    "phone": GetInstituteContact(str(i["institute_id"])),
+                    "email": GetInstituteEmail(str(i["institute_id"])),
                     "generated_by": str(i["generated_by"]),
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"])
