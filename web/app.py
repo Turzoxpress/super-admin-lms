@@ -2753,7 +2753,7 @@ class GetInstituteDetailsSpecial(Resource):
         package_id_db = ""
         package_data = {}
         for i in result:
-            package_data["id"] = str(i["integer_id"])
+            package_data["id"] = int(i["integer_id"])
             package_data["active"] = str(i["active"])
             package_data["institute_id"] = str(i["institute_id"])
             package_data["password"] = str(i["password"])
@@ -2852,7 +2852,7 @@ class GetAllInstituteList(Resource):
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"]),
                     "package_id": str(i["package_id"]),
-                    "integer_id": str(i["integer_id"])
+                    "integer_id": int(i["integer_id"])
                 }
 
                 holder.append(data)
@@ -2892,7 +2892,7 @@ class GetAllInstituteListSpecial(Resource):
         holder = []
         for i in result:
             data = {
-                "id": str(i["integer_id"]),
+                "id": int(i["integer_id"]),
                 "active": str(i["active"]),
                 "institute_id": str(i["institute_id"]),
                 "password": str(i["password"]),

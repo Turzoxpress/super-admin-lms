@@ -24,8 +24,6 @@ sudo docker stop $(docker ps -a -q)
 
 sudo docker rm $(docker ps -a -q)
 
-#Step 3 - fetching the updates from github
-sudo git pull https://github.com/Turzoxpress/super-admin-lms master
 
 #Step 4 - start the docker containers
  sudo docker-compose build
