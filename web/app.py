@@ -1475,6 +1475,32 @@ class GetAllPackageList(Resource):
 
             return jsonify(retJson)
 
+# -- Get All Package List Special
+class GetAllPackageListSpecial(Resource):
+    def get(self):
+        result = packagecol.find({})
+
+        holder = []
+        for i in result:
+            data = {
+                "id": str(i["_id"]),
+                "display": str(i["package"]["display"]),
+                "title": str(i["package"]["title"]),
+                "description": str(i["package"]["description"]),
+                "created_at": str(i["package"]["created_at"]),
+                "updated_at": str(i["package"]["updated_at"]),
+                "type": str(i["package"]["type"]),
+            }
+
+            holder.append(data)
+
+        retJson = {
+            "status": "ok",
+            "msg": holder
+        }
+
+        return jsonify(retJson)
+
 
 def PackageExist(packageid):
     if packagecol.find({"_id": packageid}).count() == 0:
@@ -5748,10 +5774,12 @@ api.add_resource(InstituteActiveStatusChange, '/institute-status-update')
 api.add_resource(InstituteDelete, '/institute-delete')
 
 # special key for Phase 3-4
+api.add_resource(GetAllPackageListSpecial, '/GetAllPackageListSpecial')
 api.add_resource(GetPackageDetailsSpecial, '/GetPackageDetailsSpecial')
 api.add_resource(GetPackageParameterListSpecial, '/GetPackageParameterListSpecial')
 api.add_resource(GetInstituteDetailsSpecial, '/GetInstituteDetailsSpecial')
 api.add_resource(GetAllInstituteListSpecial, '/GetAllInstituteListSpecial')
+
 
 
 # Phase 2
