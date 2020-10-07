@@ -2333,6 +2333,10 @@ def InstituteExist(institute_id):
     else:
         return False
 
+def SpecialInstituteID():
+    previous_id = institutecol.count()
+    present_id = previous_id + 1
+    return present_id
 
 # -- Create institute
 class InstituteCreate(Resource):
@@ -2419,6 +2423,7 @@ class InstituteCreate(Resource):
 
             # Store username and pw into the database
             sts = institutecol.insert_one({
+                "integer_id": SpecialInstituteID(),
                 "package_id": package_id,
                 "institute_id": institute_id,
                 "password": hashed_pw,
@@ -2744,65 +2749,44 @@ class GetInstituteDetailsSpecial(Resource):
             }
             return jsonify(retJson)
 
-        # Check id is valid or not
-        if ObjectId.is_valid(id):
+        result = institutecol.find({"integer_id": id})
+        package_id_db = ""
+        package_data = {}
+        for i in result:
+            package_data["id"] = str(i["integer_id"])
+            package_data["active"] = str(i["active"])
+            package_data["institute_id"] = str(i["institute_id"])
+            package_data["password"] = str(i["password"])
+            package_data["name"] = str(i["name"])
+            package_data["address"] = str(i["address"])
+            package_data["email"] = str(i["email"])
+            package_data["phone"] = str(i["phone"])
+            package_data["subscription_s_date"] = str(i["subscription_s_date"])
+            package_data["subscription_e_date"] = str(i["subscription_e_date"])
+            package_data["last_payment"] = str(i["last_payment"])
+            package_data["payment_amount"] = str(i["payment_amount"])
+            package_data["created_at"] = str(i["created_at"])
+            package_data["updated_at"] = str(i["updated_at"])
 
-            # Check id is exist
-            if not InstituteExistId(ObjectId(id)):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Institute id not found"
-                }
+            # to do
+            package_data["package_id"] = str(i["package_id"])
 
-                return jsonify(retJson)
+            package_id_db = str(i["package_id"])
+            # package_data["package_title"] = "NSU package"
+            # package_data["package_desc"] = "NSU package for summer semester"
 
-            result = institutecol.find({"_id": ObjectId(id)})
-            package_id_db = ""
-            package_data = {}
-            for i in result:
-                package_data["id"] = id
-                package_data["active"] = str(i["active"])
-                package_data["institute_id"] = str(i["institute_id"])
-                package_data["password"] = str(i["password"])
-                package_data["name"] = str(i["name"])
-                package_data["address"] = str(i["address"])
-                package_data["email"] = str(i["email"])
-                package_data["phone"] = str(i["phone"])
-                package_data["subscription_s_date"] = str(i["subscription_s_date"])
-                package_data["subscription_e_date"] = str(i["subscription_e_date"])
-                package_data["last_payment"] = str(i["last_payment"])
-                package_data["payment_amount"] = str(i["payment_amount"])
-                package_data["created_at"] = str(i["created_at"])
-                package_data["updated_at"] = str(i["updated_at"])
+        result2 = packagecol.find({"_id": ObjectId(package_id_db)})
 
-                # to do
-                package_data["package_id"] = str(i["package_id"])
+        for i in result2:
+            package_data["package_title"] = str(i["package"]["title"])
+            package_data["package_desc"] = str(i["package"]["description"])
 
-                package_id_db = str(i["package_id"])
-                # package_data["package_title"] = "NSU package"
-                # package_data["package_desc"] = "NSU package for summer semester"
+        retJson = {
+            "status": "ok",
+            "msg": package_data
+        }
 
-            result2 = packagecol.find({"_id": ObjectId(package_id_db)})
-
-            for i in result2:
-                package_data["package_title"] = str(i["package"]["title"])
-                package_data["package_desc"] = str(i["package"]["description"])
-
-            retJson = {
-                "status": "ok",
-                "msg": package_data
-            }
-
-            return jsonify(retJson)
-
-
-        else:
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid institute id"
-            }
-
-            return jsonify(retJson)
+        return jsonify(retJson)
 
 
 # -- Get All Institute List
@@ -2867,7 +2851,8 @@ class GetAllInstituteList(Resource):
                     "payment_amount": str(i["payment_amount"]),
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"]),
-                    "package_id": str(i["package_id"])
+                    "package_id": str(i["package_id"]),
+                    "integer_id": str(i["integer_id"])
                 }
 
                 holder.append(data)
@@ -2898,6 +2883,43 @@ class GetAllInstituteList(Resource):
             }
 
             return jsonify(retJson)
+
+# -- Get All Institute List Special
+class GetAllInstituteListSpecial(Resource):
+    def get(self):
+        result = institutecol.find({})
+
+        holder = []
+        for i in result:
+            data = {
+                "id": str(i["integer_id"]),
+                "active": str(i["active"]),
+                "institute_id": str(i["institute_id"]),
+                "password": str(i["password"]),
+                "name": str(i["name"]),
+                "address": str(i["address"]),
+                "email": str(i["email"]),
+                "phone": str(i["phone"]),
+                "subscription_s_date": str(i["subscription_s_date"]),
+                "subscription_e_date": str(i["subscription_e_date"]),
+                "last_payment": str(i["last_payment"]),
+                "payment_amount": str(i["payment_amount"]),
+                "created_at": str(i["created_at"]),
+                "updated_at": str(i["updated_at"]),
+                "package_id": str(i["package_id"])
+            }
+
+            holder.append(data)
+
+        retJson = {
+            "status": "ok",
+            "msg": {
+                "current_page": 1,
+                "data": holder
+            }
+        }
+
+        return jsonify(retJson)
 
 
 # -- Change institute active status
@@ -5726,9 +5748,11 @@ api.add_resource(InstituteActiveStatusChange, '/institute-status-update')
 api.add_resource(InstituteDelete, '/institute-delete')
 
 # special key for Phase 3-4
-api.add_resource(GetPackageDetailsSpecial, '/package-detail-special')
-api.add_resource(GetPackageParameterListSpecial, '/parameters-special')
-api.add_resource(GetInstituteDetailsSpecial, '/institute-detail-special')
+api.add_resource(GetPackageDetailsSpecial, '/GetPackageDetailsSpecial')
+api.add_resource(GetPackageParameterListSpecial, '/GetPackageParameterListSpecial')
+api.add_resource(GetInstituteDetailsSpecial, '/GetInstituteDetailsSpecial')
+api.add_resource(GetAllInstituteListSpecial, '/GetAllInstituteListSpecial')
+
 
 # Phase 2
 api.add_resource(CreateUserType, '/CreateUserType')
