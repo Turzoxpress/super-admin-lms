@@ -2,7 +2,7 @@
 1.Stop apache
  sudo service apache2 stop
 2. pull backend from github
-sudo git pull https://github.com/Turzoxpress/super-admin-lms master
+sudo git pull https://github.com/Turzoxpress/super-admin-lms
 
 3. Delete existing dump.gz file from db folder
 sudo rm -r dump.gz

@@ -5816,7 +5816,108 @@ class GetUpazillas(Resource):
 
         return jsonify(retJson)
 
+# -- User common login
+class UserCommonLogin(Resource):
+    def post(self):
+        postedData = request.get_json()
 
+        # Get the data
+        email = postedData["email"]
+        password = postedData["password"]
+
+        # Check user with email
+        if not UserExist(email):
+            """retJson = {
+                'status': 301,
+                'msg': 'No user exist with this username'
+            }
+            return jsonify(retJson)"""
+
+            ## check another db
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this username'
+                }
+                return jsonify(retJson)
+
+            # Check password
+            if not verifyPwNormal(email, password):
+                retJson = {
+                    'status': 301,
+                    'msg': 'Wrong username or password'
+                }
+                return jsonify(retJson)
+
+            userid = normalusercol.find({
+                "email": email
+            })[0]["_id"]
+
+            role = normalusercol.find({
+                "email": email
+            })[0]["role"]
+
+            # ------
+            result = usertypecol.find({'typename': role})
+
+            package_data = {}
+            for i in result:
+                package_data["id"] = id
+                package_data["typename"] = str(i["typename"])
+                package_data["active"] = str(i["active"])
+                package_data["user"] = str(i["user"])
+                package_data["institute"] = str(i["institute"])
+                package_data["package"] = str(i["package"])
+                package_data["bill"] = str(i["bill"])
+                package_data["payment"] = str(i["payment"])
+                package_data["created_at"] = str(i["created_at"])
+                package_data["updated_at"] = str(i["updated_at"])
+
+            # ----------------------
+
+
+
+            # -- Generate an access token
+            retJson = {
+                'status': 200,
+                'msg': {
+                    "id": str(userid),
+                    "token": generateAuthToken(email),
+                    "role": str(role),
+                    "role_details": package_data
+                }
+            }
+            return jsonify(retJson)
+
+            #############################
+
+        # Check password
+        if not verifyPw(email, password):
+            retJson = {
+                'status': 301,
+                'msg': 'Wrong username or password'
+            }
+            return jsonify(retJson)
+
+        userid = superad.find({
+            "email": email
+        })[0]["_id"]
+
+        role = superad.find({
+            "email": email
+        })[0]["role"]
+
+        # -- Generate an access token
+        retJson = {
+            'status': "ok",
+            'msg': {
+                "id": str(userid),
+                "token": generateAuthToken(email),
+                "role": str(role)
+            }
+        }
+        return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -5826,7 +5927,7 @@ api.add_resource(ShowAllSuperAdmin, '/show_all_super_admin')
 api.add_resource(DeleteAllData, '/delete_all_data')
 
 # Phase 1
-api.add_resource(SuperAdminLogin, '/authenticate')
+api.add_resource(UserCommonLogin, '/authenticate')
 api.add_resource(SuperAdminLogOut, '/logout')
 api.add_resource(UpdateSuperAdminPassword, '/password-update')
 api.add_resource(SuperAdminProfileInfoUpdate, '/info-update')
