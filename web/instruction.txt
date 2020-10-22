@@ -1,6 +1,8 @@
 #Step 0
 1.Stop apache
  sudo service apache2 stop
+
+
 2. pull backend from github
 sudo git pull https://github.com/Turzoxpress/super-admin-lms
 
