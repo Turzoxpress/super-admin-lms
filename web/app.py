@@ -24,6 +24,8 @@ from email.mime.text import MIMEText
 
 from bson import ObjectId
 
+import geloc
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -1475,6 +1477,7 @@ class GetAllPackageList(Resource):
 
             return jsonify(retJson)
 
+
 # -- Get All Package List Special
 class GetAllPackageListSpecial(Resource):
     def get(self):
@@ -2351,18 +2354,18 @@ def InstituteExistId(id):
         return True
 
 
-
-
 def InstituteExist(institute_id):
     if institutecol.find({"institute_id": institute_id}).count() == 0:
         return True
     else:
         return False
 
+
 def SpecialInstituteID():
     previous_id = institutecol.count()
     present_id = previous_id + 1
     return present_id
+
 
 # -- Create institute
 class InstituteCreate(Resource):
@@ -2909,6 +2912,7 @@ class GetAllInstituteList(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Get All Institute List Special
 class GetAllInstituteListSpecial(Resource):
@@ -4083,7 +4087,6 @@ class NormalUserAddressUpdate(Resource):
             # *******************************************
             # *******************************************
 
-
             # get the data
             postedData = request.get_json()
 
@@ -4321,8 +4324,6 @@ class NormalUserAvatarImageUpload(Resource):
             # *******************************************
             # *******************************************
             email = request.form['email']
-
-
 
             # Check user with email
             if not UserExistNormal(email):
@@ -5051,7 +5052,7 @@ class CreateNewInvoice(Resource):
                 "month": month,
                 "year": year,
                 "amount": amount,
-                "file_path":"",
+                "file_path": "",
                 "status": "Pending",
                 "generated_by": generated_by,
                 "created_at": datetime.today().strftime('%d-%m-%Y'),
@@ -5127,8 +5128,6 @@ class GetAllInvoiceList(Resource):
                 return jsonify(retJson)
 
             result = billcol.find({})
-
-
 
             holder = []
             for i in result:
@@ -5246,7 +5245,6 @@ class ViewSingleInvoice(Resource):
 
                 result = billcol.find({"_id": ObjectId(id)})
 
-
                 invoice_data = {}
                 for i in result:
                     invoice_data["id"] = str(i["_id"])
@@ -5293,6 +5291,7 @@ class ViewSingleInvoice(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Delete all invoice data
 class DeleteInvoiceCollection(Resource):
     def get(self):
@@ -5304,6 +5303,7 @@ class DeleteInvoiceCollection(Resource):
         }
 
         return jsonify(retJson)
+
 
 # -- Update invoice
 class UpdateInvoice(Resource):
@@ -5409,6 +5409,7 @@ class UpdateInvoice(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Update invoice approval
 class UpdateInvoiceApprovalStatus(Resource):
     def post(self):
@@ -5503,17 +5504,20 @@ class UpdateInvoiceApprovalStatus(Resource):
             }
             return jsonify(retJson)
 
+
 def GetInstituteContact(id):
     contact = institutecol.find({
         "institute_id": id
     })[0]["phone"]
     return contact
 
+
 def GetInstituteEmail(id):
     email = institutecol.find({
         "institute_id": id
     })[0]["email"]
     return email
+
 
 # -- Get All Institute list with Invoice
 class GetAllInstituteListWithInvoice(Resource):
@@ -5559,8 +5563,6 @@ class GetAllInstituteListWithInvoice(Resource):
                 return jsonify(retJson)
 
             result = billcol.find({})
-
-
 
             holder = []
             for i in result:
@@ -5616,6 +5618,7 @@ def InstituteExistStringId(id):
         return False
     else:
         return True
+
 
 # -- Get all invoice of an institute
 class GetAllInvoicesSingleInstitute(Resource):
@@ -5735,6 +5738,72 @@ class GetAllInvoicesSingleInstitute(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
+
+# -- Test other class api
+class TestOtherClass(Resource):
+    def get(self):
+        retJson = {
+            "status": "ok",
+            "msg": {
+                "details": geloc.getUpazilla(2)
+
+            }
+        }
+
+        return jsonify(retJson)
+
+
+# -- Get all divisions
+class GetAllDivisions(Resource):
+    def get(self):
+
+
+
+        retJson = {
+            "status": "ok",
+            "data": geloc.getDivisions()
+        }
+
+        return jsonify(retJson)
+
+# -- Get all districts by division id
+class GetDistricts(Resource):
+    def post(self):
+
+        postedData = request.get_json()
+
+        # Get the data
+        division_id = postedData["division_id"]
+
+
+
+        retJson = {
+            "status": "ok",
+            "data": geloc.getDistrict(division_id)
+        }
+
+        return jsonify(retJson)
+
+# -- Get all upazillas by district id
+class GetUpazillas(Resource):
+    def post(self):
+
+        postedData = request.get_json()
+
+        # Get the data
+        district_id = postedData["district_id"]
+
+
+
+        retJson = {
+            "status": "ok",
+            "data": geloc.getUpazilla(district_id)
+        }
+
+        return jsonify(retJson)
+
+
 # -----------------------------------------------------------------------
 
 
@@ -5755,6 +5824,7 @@ api.add_resource(SuperAdminAvatarImageUpload, '/avatar-update')
 api.add_resource(SuperAdminCoverImageUpload, '/cover-img-update')
 api.add_resource(SuperAdminPasswordResetRequestByEmail, '/password-reset-request')
 api.add_resource(SuperAdminPasswordResetReedemByEmail, '/password-reset')
+
 
 # Phase 3-4
 api.add_resource(PackageSave, '/package-save')
@@ -5779,8 +5849,6 @@ api.add_resource(GetPackageDetailsSpecial, '/GetPackageDetailsSpecial')
 api.add_resource(GetPackageParameterListSpecial, '/GetPackageParameterListSpecial')
 api.add_resource(GetInstituteDetailsSpecial, '/GetInstituteDetailsSpecial')
 api.add_resource(GetAllInstituteListSpecial, '/GetAllInstituteListSpecial')
-
-
 
 # Phase 2
 api.add_resource(CreateUserType, '/CreateUserType')
@@ -5813,10 +5881,10 @@ api.add_resource(UpdateInvoiceApprovalStatus, '/UpdateInvoiceApprovalStatus')
 api.add_resource(GetAllInstituteListWithInvoice, '/GetAllInstituteListWithInvoice')
 api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute')
 
-
-
-
-
+#-- From feedback
+api.add_resource(GetAllDivisions, '/GetAllDivisions')
+api.add_resource(GetDistricts, '/GetDistricts')
+api.add_resource(GetUpazillas, '/GetUpazillas')
 
 # -----------------------------------------------------------------------
 
