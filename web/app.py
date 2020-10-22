@@ -3680,6 +3680,12 @@ def UserExistNormal(username):
     else:
         return True
 
+def UserExistNormalWithMobile(mobile):
+    if normalusercol.find({"mobile": mobile}).count() == 0:
+        return False
+    else:
+        return True
+
 
 # -- Register new normal user
 class RegisterNewUserNormal(Resource):
@@ -3701,6 +3707,13 @@ class RegisterNewUserNormal(Resource):
             retJson = {
                 'status': 301,
                 'msg': 'User already exists with this email, try with a new one!'
+            }
+            return jsonify(retJson)
+
+        if UserExistNormalWithMobile(mobile):
+            retJson = {
+                'status': 301,
+                'msg': 'User already exists with this mobile number, try with a new one!'
             }
             return jsonify(retJson)
 
