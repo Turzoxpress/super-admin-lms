@@ -5863,7 +5863,7 @@ class UserCommonLogin(Resource):
 
             package_data = {}
             for i in result:
-                package_data["id"] = id
+                package_data["type_id"] = str(i["_id"])
                 package_data["typename"] = str(i["typename"])
                 package_data["active"] = str(i["active"])
                 package_data["user"] = str(i["user"])
