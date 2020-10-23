@@ -41,6 +41,7 @@ institutecol = db["instituteCollection"]
 usertypecol = db["userTypeCollection"]
 normalusercol = db["normalUserCollection"]
 billcol = db["billCollection"]
+emailcol = db["emailCollection"]
 
 test = db["test"]
 
@@ -3680,6 +3681,7 @@ def UserExistNormal(username):
     else:
         return True
 
+
 def UserExistNormalWithMobile(mobile):
     if normalusercol.find({"mobile": mobile}).count() == 0:
         return False
@@ -3844,7 +3846,7 @@ class GetAllUserNormalList(Resource):
                     "nationality": str(i["nationality"]),
                     "nid": str(i["nid"]),
                     "gender": str(i["gender"]),
-                    "religion": str(["religion"]),
+                    "religion": str(i["religion"]),
                     "designation": str(i["designation"]),
                     "address": str(i["address"]),
                     "post_office": str(i["post_office"]),
@@ -5770,9 +5772,6 @@ class TestOtherClass(Resource):
 # -- Get all divisions
 class GetAllDivisions(Resource):
     def get(self):
-
-
-
         retJson = {
             "status": "ok",
             "data": geloc.getDivisions()
@@ -5780,16 +5779,14 @@ class GetAllDivisions(Resource):
 
         return jsonify(retJson)
 
+
 # -- Get all districts by division id
 class GetDistricts(Resource):
     def post(self):
-
         postedData = request.get_json()
 
         # Get the data
         division_id = postedData["division_id"]
-
-
 
         retJson = {
             "status": "ok",
@@ -5798,16 +5795,14 @@ class GetDistricts(Resource):
 
         return jsonify(retJson)
 
+
 # -- Get all upazillas by district id
 class GetUpazillas(Resource):
     def post(self):
-
         postedData = request.get_json()
 
         # Get the data
         district_id = postedData["district_id"]
-
-
 
         retJson = {
             "status": "ok",
@@ -5815,6 +5810,7 @@ class GetUpazillas(Resource):
         }
 
         return jsonify(retJson)
+
 
 # -- User common login
 class UserCommonLogin(Resource):
@@ -5876,8 +5872,6 @@ class UserCommonLogin(Resource):
 
             # ----------------------
 
-
-
             # -- Generate an access token
             retJson = {
                 'status': 200,
@@ -5918,6 +5912,358 @@ class UserCommonLogin(Resource):
             }
         }
         return jsonify(retJson)
+
+
+# -- Delete all normal user
+class DeleteAllNormalUser(Resource):
+    def get(self):
+        normalusercol.drop()
+
+        retJson = {
+            "status": "ok",
+            "msg": "All normal user data deleted successfully!"
+        }
+
+        return jsonify(retJson)
+
+
+# -- Save new Email
+class SendNewEmail(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            to_address = request.form['to_address']
+            from_address = request.form['from_address']
+
+            title = request.form['title']
+            body = request.form['body']
+            status = request.form['status']
+
+
+            # Check user is exists with to_address
+            if not UserExist(to_address) and not UserExistNormal(to_address):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Receiver's email not found in the system"
+                }
+
+                return jsonify(retJson)
+
+
+
+           # Check s user is exists with from_address
+            if not UserExist(from_address) and not UserExistNormal(from_address):
+                retJson = {
+                        "status": "failed",
+                        "msg": "Sender's email not found in the system"
+                    }
+
+                return jsonify(retJson)
+
+            sts = emailcol.insert_one({
+                "to_address": to_address,
+                "from_address": from_address,
+                "title": title,
+                "body": body,
+                "status": status,
+                "deleted_by_sender": 0,
+                "deleted_by_receiver": 0,
+                "sending_date": datetime.today().strftime('%d-%m-%Y'),
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }).inserted_id
+
+            retJson = {
+                "status": "ok",
+                "msg": "Email send successfully from "+from_address+" to "+to_address
+
+            }
+            return jsonify(retJson)
+
+
+
+
+
+
+
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Delete all email data
+class DeleteAllEmailData(Resource):
+    def get(self):
+        emailcol.drop()
+
+        retJson = {
+            "status": "ok",
+            "msg": "All email data deleted successfully!"
+        }
+
+        return jsonify(retJson)
+
+# -- Get Email for user inbox
+class GetEmailForInbox(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+            email = postedData["email"]
+
+            result = emailcol.find({"to_address": email})
+
+
+
+            holder = []
+            count = 0
+            for i in result:
+                data = {
+                    "email_id": str(i["_id"]),
+                    "sender": str(i["from_address"]),
+                    "sending_date": str(i["sending_date"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+                count = count + 1
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "count": count,
+                "data": holder
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Get Email full details
+class GetEmailFullDetails(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+            email_id = postedData["email_id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(email_id):
+
+                result = emailcol.find({"_id": ObjectId(email_id)})
+
+                holder = []
+                count = 0
+                for i in result:
+                    data = {
+                        "email_id": str(i["_id"]),
+                        "to_address": str(i["to_address"]),
+                        "from_address": str(i["from_address"]),
+                        "title": str(i["title"]),
+                        "body": str(i["body"]),
+                        "status": str(i["status"]),
+                        "deleted_by_sender": str(i["deleted_by_sender"]),
+                        "deleted_by_receiver": str(i["deleted_by_receiver"]),
+                        "sending_date": str(i["sending_date"]),
+                        "updated_at": str(i["updated_at"])
+
+                    }
+                    count = count + 1
+
+                    holder.append(data)
+
+                retJson = {
+                    "status": "ok",
+                    "data": holder
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid email id"
+                }
+
+                return jsonify(retJson)
+
+
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
 # -----------------------------------------------------------------------
 
 
@@ -5938,7 +6284,6 @@ api.add_resource(SuperAdminAvatarImageUpload, '/avatar-update')
 api.add_resource(SuperAdminCoverImageUpload, '/cover-img-update')
 api.add_resource(SuperAdminPasswordResetRequestByEmail, '/password-reset-request')
 api.add_resource(SuperAdminPasswordResetReedemByEmail, '/password-reset')
-
 
 # Phase 3-4
 api.add_resource(PackageSave, '/package-save')
@@ -5984,6 +6329,8 @@ api.add_resource(GetNormalUserAddress, '/GetNormalUserAddress')
 api.add_resource(NormalUserPasswordResetRequestByEmail, '/NormalUserPasswordResetRequestByEmail')
 api.add_resource(NormalUserPasswordResetReedemByEmail, '/NormalUserPasswordResetReedemByEmail')
 
+api.add_resource(DeleteAllNormalUser, '/DeleteAllNormalUser')
+
 # Phase 5
 api.add_resource(GetAllInstituteIDs, '/GetAllInstituteIDs')
 api.add_resource(CreateNewInvoice, '/CreateNewInvoice')
@@ -5995,10 +6342,20 @@ api.add_resource(UpdateInvoiceApprovalStatus, '/UpdateInvoiceApprovalStatus')
 api.add_resource(GetAllInstituteListWithInvoice, '/GetAllInstituteListWithInvoice')
 api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute')
 
-#-- From feedback
+# -- From feedback Global
 api.add_resource(GetAllDivisions, '/GetAllDivisions')
 api.add_resource(GetDistricts, '/GetDistricts')
 api.add_resource(GetUpazillas, '/GetUpazillas')
+
+# -- Phase 6
+
+api.add_resource(SendNewEmail, '/SendNewEmail')
+api.add_resource(DeleteAllEmailData, '/DeleteAllEmailData')
+api.add_resource(GetEmailForInbox, '/GetEmailForInbox')
+api.add_resource(GetEmailFullDetails, '/GetEmailFullDetails')
+
+
+
 
 # -----------------------------------------------------------------------
 
