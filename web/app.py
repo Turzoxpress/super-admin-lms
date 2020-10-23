@@ -1,7 +1,7 @@
 import json
 import os
 
-from flask import Flask, jsonify, request, make_response, redirect, url_for, flash, render_template
+from flask import Flask, jsonify, request, make_response, redirect, url_for, flash, render_template,send_from_directory
 from flask_restful import Api, Resource, reqparse
 from pymongo import MongoClient
 import bcrypt
@@ -23,6 +23,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from bson import ObjectId
+
+
 
 import geloc
 
@@ -47,8 +49,13 @@ test = db["test"]
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = "."
 
+
+
+
+file_upload_server_path_php = 'http://10.0.2.15/turzo/upload.php'
+file_upload_server_path = 'http://10.0.2.15/turzo/files/'
 
 # -- Welcome API
 class Welcome(Resource):
@@ -6000,6 +6007,70 @@ class SendNewEmail(Resource):
 
                 return jsonify(retJson)
 
+            if request.method == 'POST':
+
+                attachmentPath = ""
+                imagePath = ""
+
+                ############################ Attachment upload
+
+
+                if 'file_attachment'in request.files:
+                    file_attachment = request.files['file_attachment']
+                    filename = str(time.time_ns()) + "_" + file_attachment.filename
+                    file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    url = file_upload_server_path_php
+
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
+
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    attachmentPath = data
+                else:
+                    attachmentPath = ""
+
+
+
+                ############################ end of attachement upload
+
+                ############################ Image upload
+
+                if 'image_attachment' in request.files:
+
+                    image_attachment = request.files['image_attachment']
+                    filename = str(time.time_ns()) + "_" + image_attachment.filename
+                    image_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    url = file_upload_server_path_php
+
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
+
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    imagePath = data
+                else:
+                    imagePath = ""
+
+
+
+
+                ############################ end of attachement upload
+
             sts = emailcol.insert_one({
                 "to_address": to_address,
                 "from_address": from_address,
@@ -6008,6 +6079,8 @@ class SendNewEmail(Resource):
                 "status": status,
                 "deleted_by_sender": 0,
                 "deleted_by_receiver": 0,
+                "file_attachement": str(attachmentPath),
+                "image_attachement": str(imagePath),
                 "sending_date": datetime.today().strftime('%d-%m-%Y'),
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
 
@@ -6015,16 +6088,10 @@ class SendNewEmail(Resource):
 
             retJson = {
                 "status": "ok",
-                "msg": "Email send successfully from "+from_address+" to "+to_address
+                "msg": "Email send successfully from " + from_address + " to " + to_address
 
             }
             return jsonify(retJson)
-
-
-
-
-
-
 
 
 
@@ -6207,6 +6274,7 @@ class GetEmailFullDetails(Resource):
                 result = emailcol.find({"_id": ObjectId(email_id)})
 
                 holder = []
+
                 count = 0
                 for i in result:
                     data = {
@@ -6216,6 +6284,8 @@ class GetEmailFullDetails(Resource):
                         "title": str(i["title"]),
                         "body": str(i["body"]),
                         "status": str(i["status"]),
+                        "file_attachement": str(i["file_attachement"]),
+                        "image_attachement": str(i["image_attachement"]),
                         "deleted_by_sender": str(i["deleted_by_sender"]),
                         "deleted_by_receiver": str(i["deleted_by_receiver"]),
                         "sending_date": str(i["sending_date"]),
