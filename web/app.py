@@ -1,7 +1,7 @@
 import json
 import os
 
-from flask import Flask, jsonify, request, make_response, redirect, url_for, flash, render_template,send_from_directory
+from flask import Flask, jsonify, request, make_response, redirect, url_for, flash, render_template, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from pymongo import MongoClient
 import bcrypt
@@ -23,8 +23,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from bson import ObjectId
-
-
 
 import geloc
 
@@ -51,11 +49,9 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = "."
 
-
-
-
 file_upload_server_path_php = 'http://10.0.2.15/turzo/upload.php'
 file_upload_server_path = 'http://10.0.2.15/turzo/files/'
+
 
 # -- Welcome API
 class Welcome(Resource):
@@ -5986,7 +5982,6 @@ class SendNewEmail(Resource):
             body = request.form['body']
             status = request.form['status']
 
-
             # Check user is exists with to_address
             if not UserExist(to_address) and not UserExistNormal(to_address):
                 retJson = {
@@ -5996,14 +5991,12 @@ class SendNewEmail(Resource):
 
                 return jsonify(retJson)
 
-
-
-           # Check s user is exists with from_address
+            # Check s user is exists with from_address
             if not UserExist(from_address) and not UserExistNormal(from_address):
                 retJson = {
-                        "status": "failed",
-                        "msg": "Sender's email not found in the system"
-                    }
+                    "status": "failed",
+                    "msg": "Sender's email not found in the system"
+                }
 
                 return jsonify(retJson)
 
@@ -6014,8 +6007,7 @@ class SendNewEmail(Resource):
 
                 ############################ Attachment upload
 
-
-                if 'file_attachment'in request.files:
+                if 'file_attachment' in request.files:
                     file_attachment = request.files['file_attachment']
                     filename = str(time.time_ns()) + "_" + file_attachment.filename
                     file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -6036,8 +6028,6 @@ class SendNewEmail(Resource):
                     attachmentPath = data
                 else:
                     attachmentPath = ""
-
-
 
                 ############################ end of attachement upload
 
@@ -6065,9 +6055,6 @@ class SendNewEmail(Resource):
                     imagePath = data
                 else:
                     imagePath = ""
-
-
-
 
                 ############################ end of attachement upload
 
@@ -6099,7 +6086,6 @@ class SendNewEmail(Resource):
 
                 }
 
-
             return jsonify(retJson)
 
 
@@ -6126,6 +6112,7 @@ class SendNewEmail(Resource):
 
             return jsonify(retJson)
 
+
 # -- Delete all email data
 class DeleteAllEmailData(Resource):
     def get(self):
@@ -6137,6 +6124,7 @@ class DeleteAllEmailData(Resource):
         }
 
         return jsonify(retJson)
+
 
 # -- Get Email for user inbox
 class GetEmailForInbox(Resource):
@@ -6185,9 +6173,7 @@ class GetEmailForInbox(Resource):
             postedData = request.get_json()
             email = postedData["email"]
 
-            result = emailcol.find({"to_address": email})
-
-
+            result = emailcol.find({"to_address": email, "deleted_by_receiver": 0})
 
             holder = []
             count = 0
@@ -6229,6 +6215,7 @@ class GetEmailForInbox(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Get Email full details
 class GetEmailFullDetails(Resource):
@@ -6342,6 +6329,7 @@ class GetEmailFullDetails(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Get Email for user sent box
 class GetEmailForSentBox(Resource):
     def post(self):
@@ -6389,9 +6377,7 @@ class GetEmailForSentBox(Resource):
             postedData = request.get_json()
             email = postedData["email"]
 
-            result = emailcol.find({"from_address": email})
-
-
+            result = emailcol.find({"from_address": email, "deleted_by_sender": 0})
 
             holder = []
             count = 0
@@ -6433,6 +6419,7 @@ class GetEmailForSentBox(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Get Email for user draft box
 class GetEmailForDraftBox(Resource):
@@ -6483,8 +6470,6 @@ class GetEmailForDraftBox(Resource):
 
             result = emailcol.find({"from_address": email, "status": "draft"})
 
-
-
             holder = []
             count = 0
             for i in result:
@@ -6526,11 +6511,13 @@ class GetEmailForDraftBox(Resource):
             }
             return jsonify(retJson)
 
+
 def EmailExistsWithID(id):
     if emailcol.find({"_id": id}).count() == 0:
         return False
     else:
         return True
+
 
 # -- Save  Email as draft
 class SaveEmailAsDraft(Resource):
@@ -6584,7 +6571,6 @@ class SaveEmailAsDraft(Resource):
             body = request.form['body']
             status = request.form['status']
 
-
             # Check user is exists with to_address
             if not UserExist(to_address) and not UserExistNormal(to_address):
                 retJson = {
@@ -6594,14 +6580,12 @@ class SaveEmailAsDraft(Resource):
 
                 return jsonify(retJson)
 
-
-
-           # Check s user is exists with from_address
+            # Check s user is exists with from_address
             if not UserExist(from_address) and not UserExistNormal(from_address):
                 retJson = {
-                        "status": "failed",
-                        "msg": "Sender's email not found in the system"
-                    }
+                    "status": "failed",
+                    "msg": "Sender's email not found in the system"
+                }
 
                 return jsonify(retJson)
 
@@ -6612,8 +6596,7 @@ class SaveEmailAsDraft(Resource):
 
                 ############################ Attachment upload
 
-
-                if 'file_attachment'in request.files:
+                if 'file_attachment' in request.files:
                     file_attachment = request.files['file_attachment']
                     filename = str(time.time_ns()) + "_" + file_attachment.filename
                     file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -6634,8 +6617,6 @@ class SaveEmailAsDraft(Resource):
                     attachmentPath = data
                 else:
                     attachmentPath = ""
-
-
 
                 ############################ end of attachement upload
 
@@ -6663,9 +6644,6 @@ class SaveEmailAsDraft(Resource):
                     imagePath = data
                 else:
                     imagePath = ""
-
-
-
 
                 ############################ end of attachement upload
 
@@ -6697,7 +6675,6 @@ class SaveEmailAsDraft(Resource):
 
                 }
 
-
             return jsonify(retJson)
 
 
@@ -6723,6 +6700,8 @@ class SaveEmailAsDraft(Resource):
             }
 
             return jsonify(retJson)
+
+
 # -- Send email from DraftBox
 class SendEmailFromDraftBox(Resource):
 
@@ -6776,7 +6755,6 @@ class SendEmailFromDraftBox(Resource):
             body = request.form['body']
             status = request.form['status']
 
-
             # Check user is exists with to_address
             if not UserExist(to_address) and not UserExistNormal(to_address):
                 retJson = {
@@ -6804,14 +6782,13 @@ class SendEmailFromDraftBox(Resource):
 
                 return jsonify(retJson)
 
-
             if request.method == 'POST':
 
                 attachmentPath = ""
                 imagePath = ""
 
                 ############################ Attachment upload
-                if 'file_attachment'in request.files:
+                if 'file_attachment' in request.files:
                     file_attachment = request.files['file_attachment']
                     filename = str(time.time_ns()) + "_" + file_attachment.filename
                     file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
@@ -6832,8 +6809,6 @@ class SendEmailFromDraftBox(Resource):
                     attachmentPath = data
                 else:
                     attachmentPath = ""
-
-
 
                 ############################ end of attachement upload
 
@@ -6861,9 +6836,6 @@ class SendEmailFromDraftBox(Resource):
                     imagePath = data
                 else:
                     imagePath = ""
-
-
-
 
                 ############################ end of attachement upload
 
@@ -6912,6 +6884,327 @@ class SendEmailFromDraftBox(Resource):
                 "msg": "Invalid access token"
             }
 
+            return jsonify(retJson)
+
+
+# -- Trash email by sender
+class TrashEmailBySender(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            email_id = request.form['email_id']
+            from_address = request.form['from_address']
+
+            # Check s user is exists with from_address
+            if not UserExist(from_address) and not UserExistNormal(from_address):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Sender's email not found in the system"
+                }
+
+                return jsonify(retJson)
+
+            # Check id is exist
+            if not EmailExistsWithID(ObjectId(email_id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Email with this id not found"
+                }
+
+                return jsonify(retJson)
+
+            myquery = {"_id": ObjectId(email_id), "from_address": from_address}
+            newvalues = {"$set": {
+
+                "deleted_by_sender": 1,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }}
+
+            sts = emailcol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Email moved to trashbox by sender successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+# -- Trash email by receiver
+class TrashEmailByReceiver(Resource):
+
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            email_id = request.form['email_id']
+            to_address = request.form['to_address']
+
+            # Check s user is exists with from_address
+            if not UserExist(to_address) and not UserExistNormal(to_address):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Receiver's email not found in the system"
+                }
+
+                return jsonify(retJson)
+
+            # Check id is exist
+            if not EmailExistsWithID(ObjectId(email_id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Email with this id not found"
+                }
+
+                return jsonify(retJson)
+
+            myquery = {"_id": ObjectId(email_id), "to_address": to_address}
+            newvalues = {"$set": {
+
+                "deleted_by_receiver": 1,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+            }}
+
+            sts = emailcol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Email moved to trashbox by receiver successfully"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+# -- Get Email for user trash box
+class GetEmailForTrashBox(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+            email = postedData["email"]
+
+            result = emailcol.find({"from_address": email, "deleted_by_sender": 1})
+
+            holder = []
+            count = 0
+            for i in result:
+                data = {
+                    "email_id": str(i["_id"]),
+                    "receiver": str(i["to_address"]),
+                    "sending_date": str(i["sending_date"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+                count = count + 1
+
+                holder.append(data)
+
+            result2 = emailcol.find({"to_address": email, "deleted_by_receiver": 1})
+
+            for i in result2:
+                data2 = {
+                    "email_id": str(i["_id"]),
+                    "receiver": str(i["to_address"]),
+                    "sending_date": str(i["sending_date"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+                count = count + 1
+
+                holder.append(data2)
+
+            retJson = {
+                "status": "ok",
+                "count": count,
+                "data": holder
+            }
+
+            return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
             return jsonify(retJson)
 
 
@@ -7006,13 +7299,11 @@ api.add_resource(GetEmailForInbox, '/GetEmailForInbox')
 api.add_resource(GetEmailFullDetails, '/GetEmailFullDetails')
 api.add_resource(GetEmailForSentBox, '/GetEmailForSentBox')
 api.add_resource(GetEmailForDraftBox, '/GetEmailForDraftBox')
-api.add_resource(SendEmailFromDraftBox, '/SendEmailFromDraftBox')
 api.add_resource(SaveEmailAsDraft, '/SaveEmailAsDraft')
-
-
-
-
-
+api.add_resource(SendEmailFromDraftBox, '/SendEmailFromDraftBox')
+api.add_resource(TrashEmailBySender, '/TrashEmailBySender')
+api.add_resource(TrashEmailByReceiver, '/TrashEmailByReceiver')
+api.add_resource(GetEmailForTrashBox, '/GetEmailForTrashBox')
 
 
 # -----------------------------------------------------------------------
