@@ -6182,6 +6182,7 @@ class GetEmailForInbox(Resource):
             for i in result:
                 data = {
                     "email_id": str(i["_id"]),
+                    "title": str(i["title"]),
                     "sender": str(i["from_address"]),
                     "sending_date": str(i["sending_date"]),
                     "updated_at": str(i["updated_at"])
@@ -6386,6 +6387,7 @@ class GetEmailForSentBox(Resource):
             for i in result:
                 data = {
                     "email_id": str(i["_id"]),
+                    "title": str(i["title"]),
                     "receiver": str(i["to_address"]),
                     "sending_date": str(i["sending_date"]),
                     "updated_at": str(i["updated_at"])
@@ -6475,6 +6477,7 @@ class GetEmailForDraftBox(Resource):
             for i in result:
                 data = {
                     "email_id": str(i["_id"]),
+                    "title": str(i["title"]),
                     "receiver": str(i["to_address"]),
                     "sending_date": str(i["sending_date"]),
                     "updated_at": str(i["updated_at"])
@@ -7157,6 +7160,7 @@ class GetEmailForTrashBox(Resource):
             for i in result:
                 data = {
                     "email_id": str(i["_id"]),
+                    "title": str(i["title"]),
                     "receiver": str(i["to_address"]),
                     "sending_date": str(i["sending_date"]),
                     "updated_at": str(i["updated_at"])
@@ -7171,6 +7175,7 @@ class GetEmailForTrashBox(Resource):
             for i in result2:
                 data2 = {
                     "email_id": str(i["_id"]),
+                    "title": str(i["title"]),
                     "receiver": str(i["to_address"]),
                     "sending_date": str(i["sending_date"]),
                     "updated_at": str(i["updated_at"])
