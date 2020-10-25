@@ -1,0 +1,9 @@
+Flask
+flask_restful
+pymongo
+bcrypt
+python-bsonjs
+pyjwt
+requests
+Pillow
+flask-cors
