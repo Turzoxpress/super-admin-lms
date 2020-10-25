@@ -1,0 +1,43 @@
+**** update server path for file upload
+18.188.174.161
+
+#Step 0
+1.Stop apache
+ sudo service apache2 stop
+
+
+2. pull backend from github
+sudo git pull https://github.com/Turzoxpress/super-admin-lms
+
+3. Delete existing dump.gz file from db folder
+sudo rm -r dump.gz
+
+#Step 1 - database backup
+sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dump.gz
+//sudo docker-compose exec -T db mongodump --quiet --archive --gzip --db SuperAdminDB> dump.gz
+
+ --- if permission issue occurs
+ sudo chmod -R 777 /www/store
+ or
+ sudo chmod -R 777 ./
+
+#Step 2 - shutdown the docker containers
+
+sudo chmod 666 /var/run/docker.sock
+
+sudo docker stop $(docker ps -a -q)
+
+sudo docker rm $(docker ps -a -q)
+
+
+#Step 4 - start the docker containers
+ sudo docker-compose build
+ //sudo docker-compose up
+ sudo docker-compose up -d (deattached mode)
+
+#Step 5 - restore the database
+sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
+
+#Step 6
+1.Restart apache
+ sudo service apache2 restart
