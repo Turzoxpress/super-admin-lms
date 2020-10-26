@@ -5583,17 +5583,27 @@ class UpdateInvoiceApprovalStatus(Resource):
 
 
 def GetInstituteContact(id):
-    contact = institutecol.find({
-        "institute_id": id
-    })[0]["phone"]
-    return contact
+    try:
+        contact = institutecol.find({
+            "institute_id": id
+        })[0]["phone"]
+        return contact
+    except:
+        return "NA"
+
+
+
 
 
 def GetInstituteEmail(id):
-    email = institutecol.find({
-        "institute_id": id
-    })[0]["email"]
-    return email
+
+    try:
+        email = institutecol.find({
+            "institute_id": id
+        })[0]["email"]
+        return email
+    except:
+        return "NA"
 
 
 # -- Get All Institute list with Invoice
