@@ -79,6 +79,19 @@ def TokenExist(tokenToCheck):
     else:
         return True
 
+def UserExistNormal(username):
+    if normalusercol.find({"email": username}).count() == 0:
+        return False
+    else:
+        return True
+
+
+def UserExistNormalWithMobile(mobile):
+    if normalusercol.find({"mobile": mobile}).count() == 0:
+        return False
+    else:
+        return True
+
 
 # -- Register new super admin
 class RegisterSuperAdmin(Resource):
@@ -629,6 +642,46 @@ class GetSuperAdminProfileInfo(Resource):
                 }
 
                 return jsonify(retJson)
+
+                if not UserExistNormal(which_user):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Invalid access token"
+                    }
+
+                return jsonify(retJson)
+
+                result = normalusercol.find({"email": which_user})
+                holder = []
+                user_data = {}
+                for i in result:
+                    # user_data = {}
+                    user_data["id"] = str(i["_id"])
+                    user_data["username"] = str(i["username"])
+                    user_data["email"] = str(i["email"])
+                    user_data["avatar_img"] = str(i["avatar_img"])
+                    user_data["cover_img"] = str(i["cover_img"])
+                    user_data["created_at"] = str(i["created_at"])
+                    user_data["fname"] = str(i["fname"])
+                    user_data["lname"] = str(i["lname"])
+                    user_data["mobile"] = str(i["mobile"])
+                    user_data["marital_status"] = str(i["marital_status"])
+                    user_data["date_of_birth"] = str(i["date_of_birth"])
+                    user_data["place_of_birth"] = str(i["place_of_birth"])
+                    user_data["gender"] = str(i["gender"])
+                    user_data["religion"] = str(i["religion"])
+                    user_data["nationality"] = str(i["nationality"])
+                    user_data["nid"] = str(i["nid"])
+                    user_data["designation"] = str(i["designation"])
+                    user_data["role"] = str(i["role"])
+                    # holder.append(user_data)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": user_data
+                }
+                return jsonify(retJson)
+
 
             result = superad.find({"email": which_user})
             holder = []
@@ -3680,18 +3733,7 @@ class UpdateUserActivation(Resource):
             return jsonify(retJson)
 
 
-def UserExistNormal(username):
-    if normalusercol.find({"email": username}).count() == 0:
-        return False
-    else:
-        return True
 
-
-def UserExistNormalWithMobile(mobile):
-    if normalusercol.find({"mobile": mobile}).count() == 0:
-        return False
-    else:
-        return True
 
 
 # -- Register new normal user
