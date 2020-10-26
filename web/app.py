@@ -644,12 +644,12 @@ class GetSuperAdminProfileInfo(Resource):
                 return jsonify(retJson)"""
 
                 if not UserExistNormal(which_user):
-                    retJson = {
+                    retJson2 = {
                         "status": "failed",
                         "msg": "Invalid access token"
                     }
 
-                return jsonify(retJson)
+                return jsonify(retJson2)
 
                 result = normalusercol.find({"email": which_user})
                 holder = []
