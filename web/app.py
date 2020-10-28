@@ -2212,6 +2212,7 @@ class PackageAddNewParameter(Resource):
 
                 result = packagecol.find({"_id": ObjectId(id)})
 
+
                 dbparams = {}
                 for i in result:
                     dbparams = i["parameters"]
@@ -8821,7 +8822,7 @@ api.add_resource(GetSettingsInstituteWithID, '/GetSettingsInstituteWithID')
 api.add_resource(UpdateSettingsInstituteActiveStatus, '/UpdateSettingsInstituteActiveStatus')
 api.add_resource(UpdateSettingsInstitute, '/UpdateSettingsInstitute')
 
-# ----------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
