@@ -7279,6 +7279,198 @@ class GetEmailForTrashBox(Resource):
             }
             return jsonify(retJson)
 
+# -- Delete Email from Inbox
+class DeleteEmailFromInbox(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            receiver = postedData["receiver"]
+            parameters = postedData["parameters"]
+
+            # finding the dynamic paramerters values
+            countT = len(parameters)
+
+            params = []
+            for i in range(countT):
+                id = parameters[i]['id']
+
+                # ----------------
+                myquery = {"_id": ObjectId(id), "to_address": receiver}
+                newvalues = {"$set": {
+
+                    "deleted_by_receiver": 1,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+                }}
+
+                emailcol.update_one(myquery, newvalues)
+
+                # ----------------------------
+
+            retJson = {
+                "status": "ok",
+                "msg": "All emails moved to trashbox"
+            }
+
+            return jsonify(retJson)
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Delete Email from SentBox
+class DeleteEmailFromSentBox(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            sender = postedData["sender"]
+            parameters = postedData["parameters"]
+
+            # finding the dynamic paramerters values
+            countT = len(parameters)
+
+
+
+            params = []
+            for i in range(countT):
+                id = parameters[i]['id']
+
+                # ----------------
+                myquery = {"_id": ObjectId(id), "from_address": sender}
+                newvalues = {"$set": {
+
+                    "deleted_by_sender": 1,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+                }}
+
+                emailcol.update_one(myquery, newvalues)
+
+                # ----------------------------
+
+            retJson = {
+                "status": "ok",
+                "msg": "All emails moved to trashbox"
+            }
+
+            return jsonify(retJson)
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
 
 def SpecialSettingsPackageID():
     previous_id = settingspackagecol.count()
@@ -8400,6 +8592,10 @@ api.add_resource(SendEmailFromDraftBox, '/SendEmailFromDraftBox')
 api.add_resource(TrashEmailBySender, '/TrashEmailBySender')
 api.add_resource(TrashEmailByReceiver, '/TrashEmailByReceiver')
 api.add_resource(GetEmailForTrashBox, '/GetEmailForTrashBox')
+api.add_resource(DeleteEmailFromInbox, '/DeleteEmailFromInbox')
+api.add_resource(DeleteEmailFromSentBox, '/DeleteEmailFromSentBox')
+
+
 
 api.add_resource(SettingsPackageCreate, '/SettingsPackageCreate')
 api.add_resource(DeleteAllSettingsPackageCollection, '/DeleteAllSettingsPackageCollection')
