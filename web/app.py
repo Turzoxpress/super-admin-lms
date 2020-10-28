@@ -2534,31 +2534,10 @@ class InstituteCreate(Resource):
                 int_id = str(i["integer_id"])
 
 
-
-            """holder = []
-
-            count = 0
-            for i in result:
-                data = {
-                    "email_id": str(i["_id"]),
-                    "to_address": str(i["to_address"]),
-                    "from_address": str(i["from_address"]),
-                    "title": str(i["title"]),
-                    "body": str(i["body"]),
-                    "status": str(i["status"]),
-                    "file_attachement": str(i["file_attachement"]),
-                    "image_attachement": str(i["image_attachement"]),
-                    "deleted_by_sender": str(i["deleted_by_sender"]),
-                    "deleted_by_receiver": str(i["deleted_by_receiver"]),
-                    "sending_date": str(i["sending_date"]),
-                    "updated_at": str(i["updated_at"])
-
-                }"""
-
             retJson = {
                 "status": "ok",
                 "msg": str(sts),
-                "integer_id": int_id
+                "integer_id": int(int_id)
 
             }
 
@@ -5855,6 +5834,80 @@ class GetAllInvoicesSingleInstitute(Resource):
             }
             return jsonify(retJson)
 
+# -- Get all invoice of an institute special
+class GetAllInvoicesSingleInstituteSpecial(Resource):
+    def post(self):
+
+        try:
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+
+            res1 = institutecol.find({"integer_id": id})
+            string_id = ""
+            for i in res1:
+                string_id = str(i["institute_id"])
+
+
+
+
+            result = institutecol.find({"institute_id": string_id})
+            package_id_db = ""
+            package_data = {}
+
+            for i in result:
+                package_data["id"] = int(i["integer_id"])
+                package_data["institute_id"] = str(i["institute_id"])
+                package_data["name"] = str(i["name"])
+                package_data["address"] = str(i["address"])
+                package_data["email"] = str(i["email"])
+                package_data["phone"] = str(i["phone"])
+                package_data["created_at"] = str(i["created_at"])
+                package_data["updated_at"] = str(i["updated_at"])
+
+            result2 = billcol.find({"institute_id": string_id})
+
+            holder = []
+            invoice_counter = 0
+            for i in result2:
+                data = {
+                    "id": int(i["integer_id"]),
+                    "institute_id": str(i["institute_id"]),
+                    "institute_name": str(i["institute_name"]),
+                    "month": str(i["month"]),
+                    "year": str(i["year"]),
+                    "amount": str(i["amount"]),
+                    "file_path": str(i["file_path"]),
+                    "status": str(i["status"]),
+                    "generated_by": str(i["generated_by"]),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
+
+                }
+                invoice_counter = invoice_counter + 1
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "invoice_counter": invoice_counter,
+                "msg": {
+                    "details": package_data,
+                    "data": holder
+                }
+            }
+
+            return jsonify(retJson)
+        except:
+            retJson = {
+                "status": "failed",
+                "msg": "Not found any data in server"
+            }
+
+
+
+
 
 # -- Test other class api
 class TestOtherClass(Resource):
@@ -8605,6 +8658,8 @@ api.add_resource(UpdateInvoice, '/UpdateInvoice')
 api.add_resource(UpdateInvoiceApprovalStatus, '/UpdateInvoiceApprovalStatus')
 api.add_resource(GetAllInstituteListWithInvoice, '/GetAllInstituteListWithInvoice')
 api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute')
+api.add_resource(GetAllInvoicesSingleInstituteSpecial, '/GetAllInvoicesSingleInstituteSpecial')
+
 
 # -- From feedback Global
 api.add_resource(GetAllDivisions, '/GetAllDivisions')
