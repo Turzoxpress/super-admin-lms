@@ -1503,6 +1503,7 @@ class GetAllPackageList(Resource):
                     "id": str(i["_id"]),
                     "display": str(i["package"]["display"]),
                     "title": str(i["package"]["title"]),
+                    "payable_amount": int(i["package"]["payable_amount"]),
                     "description": str(i["package"]["description"]),
                     "created_at": str(i["package"]["created_at"]),
                     "updated_at": str(i["package"]["updated_at"]),
@@ -1547,6 +1548,7 @@ class GetAllPackageListSpecial(Resource):
                 "id": str(i["_id"]),
                 "display": str(i["package"]["display"]),
                 "title": str(i["package"]["title"]),
+                "payable_amount": int(i["package"]["payable_amount"]),
                 "description": str(i["package"]["description"]),
                 "created_at": str(i["package"]["created_at"]),
                 "updated_at": str(i["package"]["updated_at"]),
@@ -1568,6 +1570,13 @@ def PackageExist(packageid):
         return False
     else:
         return True
+
+def PackageExistWithTitle(title):
+    if packagecol.find({"package.title": title}).count() == 0:
+        return False
+    else:
+        return True
+
 
 
 # -- Save Package
@@ -1620,8 +1629,21 @@ class PackageSave(Resource):
             package = postedData["package"]
             parameters = postedData["parameters"]
 
+            if PackageExistWithTitle(str(package['title'])):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Package already exists with this title"
+                }
+
+                return jsonify(retJson)
+
             # finding the dynamic paramerters values
             countT = len(parameters)
+
+            #----- check package tittle is unique or not
+
+
+
 
             params = []
             for i in range(countT):
@@ -1629,7 +1651,9 @@ class PackageSave(Resource):
                     "_id": ObjectId(),
                     "name": parameters[i]['name'],
                     "quantity": parameters[i]['quantity'],
-                    "price": parameters[i]['price']
+                    "price": parameters[i]['price'],
+                    "created_at": datetime.today().strftime('%d-%m-%Y'),
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
                 }
                 params.append(data)
 
@@ -1640,6 +1664,7 @@ class PackageSave(Resource):
                     "title": package['title'],
                     "description": package['description'],
                     "type": package['type'],
+                    "payable_amount": package['payable_amount'],
                     "created_at": datetime.today().strftime('%d-%m-%Y'),
                     "updated_at": datetime.today().strftime('%d-%m-%Y')
 
@@ -1652,6 +1677,7 @@ class PackageSave(Resource):
                 "status": "ok",
                 "msg": {
                     "package_id": str(temp_id)
+
                 }
             }
 
@@ -1760,13 +1786,16 @@ class GetPackageDetails(Resource):
                         "param_id": str(i["_id"]),
                         "name": str(i["name"]),
                         "quantity": str(i["quantity"]),
-                        "price": str(i["price"])
+                        "price": str(i["price"]),
+                        "created_at": str(i["created_at"]),
+                        "updated_at": str(i["updated_at"])
                     }
                     params.append(data)
 
                 result2 = packagecol.find({"_id": ObjectId(id)})
                 holder = []
                 package_data = {}
+
                 for i in result2:
                     package_data["id"] = str(i["_id"])
                     package_data["display"] = str(i["package"]["display"])
@@ -1775,6 +1804,7 @@ class GetPackageDetails(Resource):
                     package_data["created_at"] = str(i["package"]["created_at"])
                     package_data["updated_at"] = str(i["package"]["updated_at"])
                     package_data["type"] = str(i["package"]["type"])
+                    package_data["payable_amount"] = int(i["package"]["payable_amount"])
                     package_data["params"] = params
                     holder.append(package_data)
 
@@ -1852,7 +1882,9 @@ class GetPackageDetailsSpecial(Resource):
                     "param_id": str(i["_id"]),
                     "name": str(i["name"]),
                     "quantity": str(i["quantity"]),
-                    "price": str(i["price"])
+                    "price": str(i["price"]),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
                 }
                 params.append(data)
 
@@ -1867,6 +1899,7 @@ class GetPackageDetailsSpecial(Resource):
                 package_data["created_at"] = str(i["package"]["created_at"])
                 package_data["updated_at"] = str(i["package"]["updated_at"])
                 package_data["type"] = str(i["package"]["type"])
+                package_data["payable_amount"] = int(i["package"]["payable_amount"])
                 package_data["params"] = params
                 holder.append(package_data)
 
@@ -1939,6 +1972,8 @@ class PackageUpdate(Resource):
             title = postedData["title"]
             display = postedData["display"]
             description = postedData["description"]
+            payable_amount = postedData["payable_amount"]
+
 
             # Check id is valid or not
             if ObjectId.is_valid(id):
@@ -1957,6 +1992,7 @@ class PackageUpdate(Resource):
                     "package.title": title,
                     "package.display": display,
                     "package.description": description,
+                    "package.payable_amount": payable_amount,
                     "package.updated_at": datetime.today().strftime('%d-%m-%Y')
                 }}
 
