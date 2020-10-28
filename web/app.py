@@ -5589,6 +5589,92 @@ class UpdateInvoiceApprovalStatus(Resource):
             }
             return jsonify(retJson)
 
+# -- Attach payment receipt with invoice
+class AttachPaymentReceiptWithInvoiceSpecial(Resource):
+    def post(self):
+
+        try:
+            invoice_id = request.form['invoice_id']
+
+
+            if request.method == 'POST':
+
+                attachmentPath = ""
+
+                ############################ Attachment upload
+
+                if 'file_attachment' in request.files:
+                    file_attachment = request.files['file_attachment']
+                    filename = str(time.time_ns()) + "_" + file_attachment.filename
+                    file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    url = file_upload_server_path_php
+
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
+
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    attachmentPath = data
+                else:
+                    attachmentPath = ""
+
+                ############################ end of attachement upload
+
+
+
+                myquery = {"_id": ObjectId(invoice_id)}
+                newvalues = {"$set": {
+                    "file_path": attachmentPath,
+                    "status": "Pending",
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+
+                }}
+
+                sts = billcol.update_one(myquery, newvalues)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Attachment uploaded successfully",
+                    "data": {
+                        "status": "Pending",
+                        "file_url": attachmentPath
+
+                    }
+
+                }
+
+                return jsonify(retJson)
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Data fields mismatched"
+                }
+
+                return jsonify(retJson)
+
+
+
+
+        except:
+            retJson = {
+                "status": "failed",
+                "msg": "No data found"
+            }
+
+            return jsonify(retJson)
+
+
+
+
+
+
 
 def GetInstituteContact(id):
     try:
@@ -8659,6 +8745,8 @@ api.add_resource(UpdateInvoiceApprovalStatus, '/UpdateInvoiceApprovalStatus')
 api.add_resource(GetAllInstituteListWithInvoice, '/GetAllInstituteListWithInvoice')
 api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute')
 api.add_resource(GetAllInvoicesSingleInstituteSpecial, '/GetAllInvoicesSingleInstituteSpecial')
+api.add_resource(AttachPaymentReceiptWithInvoiceSpecial, '/AttachPaymentReceiptWithInvoiceSpecial')
+
 
 
 # -- From feedback Global
