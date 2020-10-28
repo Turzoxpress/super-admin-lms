@@ -2528,9 +2528,38 @@ class InstituteCreate(Resource):
 
             }).inserted_id
 
+            res = institutecol.find({"_id": ObjectId(sts)})
+            int_id = 0;
+            for i in res:
+                int_id = str(i["integer_id"])
+
+
+
+            """holder = []
+
+            count = 0
+            for i in result:
+                data = {
+                    "email_id": str(i["_id"]),
+                    "to_address": str(i["to_address"]),
+                    "from_address": str(i["from_address"]),
+                    "title": str(i["title"]),
+                    "body": str(i["body"]),
+                    "status": str(i["status"]),
+                    "file_attachement": str(i["file_attachement"]),
+                    "image_attachement": str(i["image_attachement"]),
+                    "deleted_by_sender": str(i["deleted_by_sender"]),
+                    "deleted_by_receiver": str(i["deleted_by_receiver"]),
+                    "sending_date": str(i["sending_date"]),
+                    "updated_at": str(i["updated_at"])
+
+                }"""
+
             retJson = {
                 "status": "ok",
-                "msg": str(sts)
+                "msg": str(sts),
+                "integer_id": int_id
+
             }
 
             return jsonify(retJson)
@@ -8083,6 +8112,8 @@ class SettingsInstituteCreate(Resource):
                 "updated_at": datetime.today().strftime('%d-%m-%Y'),
 
             }).inserted_id
+
+
 
             retJson = {
                 "status": "ok",
