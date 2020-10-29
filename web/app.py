@@ -8712,6 +8712,18 @@ class UpdateSettingsInstitute(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
+# -- Delete all invoice
+class DeleteAllInvoice(Resource):
+    def get(self):
+        billcol.drop()
+
+        retJson = {
+            "status": "ok",
+            "msg": "All invoice data deleted successfully!"
+        }
+
+        return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -8829,6 +8841,10 @@ api.add_resource(GetSettingsInstituteList, '/GetSettingsInstituteList')
 api.add_resource(GetSettingsInstituteWithID, '/GetSettingsInstituteWithID')
 api.add_resource(UpdateSettingsInstituteActiveStatus, '/UpdateSettingsInstituteActiveStatus')
 api.add_resource(UpdateSettingsInstitute, '/UpdateSettingsInstitute')
+
+api.add_resource(DeleteAllInvoice, '/DeleteAllInvoice')
+
+
 
 # -------------------------------------------------------------------------------
 
