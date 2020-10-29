@@ -2206,7 +2206,9 @@ class PackageAddNewParameter(Resource):
                         "_id": ObjectId(),
                         "name": parameters[i]['name'],
                         "quantity": parameters[i]['quantity'],
-                        "price": parameters[i]['price']
+                        "price": parameters[i]['price'],
+                        "created_at": datetime.today().strftime('%d-%m-%Y'),
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
                     }
                     params.append(data)
 
@@ -2222,7 +2224,9 @@ class PackageAddNewParameter(Resource):
                         "_id": str(i["_id"]),
                         "name": str(i["name"]),
                         "quantity": str(i["quantity"]),
-                        "price": str(i["price"])
+                        "price": str(i["price"]),
+                        "created_at": str(i["created_at"]),
+                        "updated_at": str(i["updated_at"])
                     }
                     params.append(data)
 
@@ -2342,7 +2346,9 @@ class GetPackageParameterList(Resource):
                         "name": str(i["name"]),
                         "quantity": str(i["quantity"]),
                         "price": str(i["price"]),
-                        "package_id": str(id)
+                        "package_id": str(id),
+                        "created_at": str(i["created_at"]),
+                        "updated_at": str(i["updated_at"])
                     }
                     params.append(data)
 
@@ -2421,7 +2427,9 @@ class GetPackageParameterListSpecial(Resource):
                     "name": str(i["name"]),
                     "quantity": str(i["quantity"]),
                     "price": str(i["price"]),
-                    "package_id": str(id)
+                    "package_id": str(id),
+                    "created_at": str(i["created_at"]),
+                    "updated_at": str(i["updated_at"])
                 }
                 params.append(data)
 
