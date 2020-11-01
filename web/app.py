@@ -753,7 +753,7 @@ class SuperAdminAddressUpdate(Resource):
         parts = auth_header_value.split()
 
         if parts[0].lower() != 'bearer':
-            # return False
+            #return False
             retJson = {
                 "status": "failed",
                 "msg": "Invalid access token"
@@ -792,6 +792,59 @@ class SuperAdminAddressUpdate(Resource):
                 }
 
                 return jsonify(retJson)
+
+                #--------------
+                if not UserExistNormal(which_user):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Invalid access token"
+                    }
+
+                    return jsonify(retJson)
+
+                    # Get the data
+                    address = postedData["address"]
+                    post_office = postedData["post_office"]
+                    post_code = postedData["post_code"]
+                    thana = postedData["thana"]
+                    district = postedData["district"]
+                    division = postedData["division"]
+                    per_address = postedData["per_address"]
+                    per_post_office = postedData["per_post_office"]
+                    per_post_code = postedData["per_post_code"]
+                    per_thana = postedData["per_thana"]
+                    per_district = postedData["per_district"]
+                    per_division = postedData["per_division"]
+
+                    myquery = {"email": which_user}
+                    newvalues = {"$set": {
+                        "address": address,
+                        "post_office": post_office,
+                        "post_code": post_code,
+                        "thana": thana,
+                        "district": district,
+                        "division": division,
+                        "per_address": per_address,
+                        "per_post_office": per_post_office,
+                        "per_post_code": per_post_code,
+                        "per_thana": per_thana,
+                        "per_district": per_district,
+                        "per_division": per_division,
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
+
+                    superad.update_one(myquery, newvalues)
+
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Address updated"
+                    }
+                    return jsonify(retJson)
+
+
+
+
+                #---------------------------------------------------
 
             # get the data
             postedData = request.get_json()
