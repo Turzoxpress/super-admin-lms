@@ -786,14 +786,7 @@ class SuperAdminAddressUpdate(Resource):
 
             # Check user with email
             if not UserExist(which_user):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-
-                #--------------
+                # --------------
                 if not UserExistNormal(which_user):
                     retJson = {
                         "status": "failed",
@@ -841,10 +834,9 @@ class SuperAdminAddressUpdate(Resource):
                     }
                     return jsonify(retJson)
 
+                # ---------------------------------------------------
 
 
-
-                #---------------------------------------------------
 
             # get the data
             postedData = request.get_json()
