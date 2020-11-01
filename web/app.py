@@ -515,11 +515,53 @@ class SuperAdminProfileInfoUpdate(Resource):
 
             # Check user with email
             if not UserExist(which_user):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
+                if not UserExistNormal(which_user):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Invalid access token"
+                    }
 
+                    return jsonify(retJson)
+
+                # get the data
+                postedData = request.get_json()
+
+                # Get the data
+                fname = postedData["fname"]
+                lname = postedData["lname"]
+                mobile = postedData["mobile"]
+                date_of_birth = postedData["date_of_birth"]
+                place_of_birth = postedData["place_of_birth"]
+                gender = postedData["gender"]
+                marital_status = postedData["marital_status"]
+                nationality = postedData["nationality"]
+                nid = postedData["nid"]
+                religion = postedData["religion"]
+                designation = postedData["designation"]
+
+                myquery = {"email": which_user}
+                newvalues = {"$set": {
+                    "username": fname,
+                    "fname": fname,
+                    "lname": lname,
+                    "mobile": mobile,
+                    "date_of_birth": date_of_birth,
+                    "place_of_birth": place_of_birth,
+                    "marital_status": marital_status,
+                    "nationality": nationality,
+                    "nid": nid,
+                    "gender": gender,
+                    "religion": religion,
+                    "designation": designation,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+                }}
+
+                normalusercol.update_one(myquery, newvalues)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Profile info updated"
+                }
                 return jsonify(retJson)
 
             # get the data
@@ -784,6 +826,9 @@ class SuperAdminAddressUpdate(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
+            # get the data
+            postedData = request.get_json()
+
             # Check user with email
             if not UserExist(which_user):
                 # --------------
@@ -795,51 +840,50 @@ class SuperAdminAddressUpdate(Resource):
 
                     return jsonify(retJson)
 
-                    # Get the data
-                    address = postedData["address"]
-                    post_office = postedData["post_office"]
-                    post_code = postedData["post_code"]
-                    thana = postedData["thana"]
-                    district = postedData["district"]
-                    division = postedData["division"]
-                    per_address = postedData["per_address"]
-                    per_post_office = postedData["per_post_office"]
-                    per_post_code = postedData["per_post_code"]
-                    per_thana = postedData["per_thana"]
-                    per_district = postedData["per_district"]
-                    per_division = postedData["per_division"]
+                # Get the data
+                address = postedData["address"]
+                post_office = postedData["post_office"]
+                post_code = postedData["post_code"]
+                thana = postedData["thana"]
+                district = postedData["district"]
+                division = postedData["division"]
+                per_address = postedData["per_address"]
+                per_post_office = postedData["per_post_office"]
+                per_post_code = postedData["per_post_code"]
+                per_thana = postedData["per_thana"]
+                per_district = postedData["per_district"]
+                per_division = postedData["per_division"]
 
-                    myquery = {"email": which_user}
-                    newvalues = {"$set": {
-                        "address": address,
-                        "post_office": post_office,
-                        "post_code": post_code,
-                        "thana": thana,
-                        "district": district,
-                        "division": division,
-                        "per_address": per_address,
-                        "per_post_office": per_post_office,
-                        "per_post_code": per_post_code,
-                        "per_thana": per_thana,
-                        "per_district": per_district,
-                        "per_division": per_division,
-                        "updated_at": datetime.today().strftime('%d-%m-%Y')
-                    }}
+                myquery = {"email": which_user}
+                newvalues = {"$set": {
+                    "address": address,
+                    "post_office": post_office,
+                    "post_code": post_code,
+                    "thana": thana,
+                    "district": district,
+                    "division": division,
+                    "per_address": per_address,
+                    "per_post_office": per_post_office,
+                    "per_post_code": per_post_code,
+                    "per_thana": per_thana,
+                    "per_district": per_district,
+                    "per_division": per_division,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+                }}
 
-                    superad.update_one(myquery, newvalues)
+                normalusercol.update_one(myquery, newvalues)
 
-                    retJson = {
-                        "status": "ok",
-                        "msg": "Address updated"
-                    }
-                    return jsonify(retJson)
+                retJson = {
+                    "status": "ok",
+                    "msg": "Address updated"
+                }
+                return jsonify(retJson)
 
-                # ---------------------------------------------------
+            # ---------------------------------------------------
 
 
 
-            # get the data
-            postedData = request.get_json()
+
 
             # Get the data
             address = postedData["address"]
@@ -1128,59 +1172,59 @@ class SuperAdminAvatarImageUpload(Resource):
 
                     return jsonify(retJson)
 
-                    # work to do
-                    if request.method == 'POST':
-                        # check if the post request has the file part
-                        if 'avatar_img' not in request.files:
-                            flash('No file part')
-                            return redirect(request.url)
-                        file = request.files['avatar_img']
-                        # if user does not select file, browser also
-                        # submit an empty part without filename
-                        if file.filename == '':
-                            flash('No selected file')
-                            return redirect(request.url)
-                        if file and allowed_file(file.filename):
-                            filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
-                            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                            # return jsonify({"status": "uploaded"})
-                            client_id = 'cc2c0f99f595668'
-                            headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+                # work to do
+                if request.method == 'POST':
+                    # check if the post request has the file part
+                    if 'avatar_img' not in request.files:
+                        flash('No file part')
+                        return redirect(request.url)
+                    file = request.files['avatar_img']
+                    # if user does not select file, browser also
+                    # submit an empty part without filename
+                    if file.filename == '':
+                        flash('No selected file')
+                        return redirect(request.url)
+                    if file and allowed_file(file.filename):
+                        filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
+                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                        # return jsonify({"status": "uploaded"})
+                        client_id = 'cc2c0f99f595668'
+                        headers = {"Authorization": "Client-ID cc2c0f99f595668"}
 
-                            api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+                        api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
 
-                            url = "https://api.imgur.com/3/upload.json"
-                            # im1 = Image.open(file)
-                            filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                        url = "https://api.imgur.com/3/upload.json"
+                        # im1 = Image.open(file)
+                        filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                            j1 = requests.post(
-                                url,
-                                headers=headers,
-                                data={
-                                    'key': api_key,
-                                    'image': b64encode(open(filepath, 'rb').read()),
-                                    'type': 'base64',
-                                    'name': '1.jpg',
-                                    'title': 'Picture no. 1'
-                                }
-                            )
-                            data = json.loads(j1.text)['data']
-
-                            # return data['link']
-                            # return (str(j1))
-                            myquery = {"email": which_user}
-                            newvalues = {"$set": {
-                                "avatar_img": data['link'],
-                                "updated_at": datetime.today().strftime('%d-%m-%Y')
-                            }}
-
-                            normalusercol.update_one(myquery, newvalues)
-
-                            retJson = {
-                                "status": "ok",
-                                "msg": "Avatar image updated"
+                        j1 = requests.post(
+                            url,
+                            headers=headers,
+                            data={
+                                'key': api_key,
+                                'image': b64encode(open(filepath, 'rb').read()),
+                                'type': 'base64',
+                                'name': '1.jpg',
+                                'title': 'Picture no. 1'
                             }
-                            return jsonify(retJson)
+                        )
+                        data = json.loads(j1.text)['data']
+
+                        # return data['link']
+                        # return (str(j1))
+                        myquery = {"email": which_user}
+                        newvalues = {"$set": {
+                            "avatar_img": data['link'],
+                            "updated_at": datetime.today().strftime('%d-%m-%Y')
+                        }}
+
+                        normalusercol.update_one(myquery, newvalues)
+
+                        retJson = {
+                            "status": "ok",
+                            "msg": "Avatar image updated"
+                        }
+                        return jsonify(retJson)
 
                 # work to do
             if request.method == 'POST':
@@ -1318,59 +1362,63 @@ class SuperAdminCoverImageUpload(Resource):
                     }
 
                     return jsonify(retJson)
-                    # work to do
-                    if request.method == 'POST':
-                        # check if the post request has the file part
-                        if 'cover_img' not in request.files:
-                            flash('No file part')
-                            return redirect(request.url)
-                        file = request.files['cover_img']
-                        # if user does not select file, browser also
-                        # submit an empty part without filename
-                        if file.filename == '':
-                            flash('No selected file')
-                            return redirect(request.url)
-                        if file and allowed_file(file.filename):
-                            filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
-                            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                            # return jsonify({"status": "uploaded"})
-                            client_id = 'cc2c0f99f595668'
-                            headers = {"Authorization": "Client-ID cc2c0f99f595668"}
 
-                            api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
+                # work to do
+                if request.method == 'POST':
+                    # check if the post request has the file part
+                    if 'cover_img' not in request.files:
+                        flash('No file part')
+                        return redirect(request.url)
+                    file = request.files['cover_img']
+                    # if user does not select file, browser also
+                    # submit an empty part without filename
+                    if file.filename == '':
+                        flash('No selected file')
+                        return redirect(request.url)
+                    if file and allowed_file(file.filename):
+                        filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
+                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                        # return jsonify({"status": "uploaded"})
+                        client_id = 'cc2c0f99f595668'
+                        headers = {"Authorization": "Client-ID cc2c0f99f595668"}
 
-                            url = "https://api.imgur.com/3/upload.json"
-                            # im1 = Image.open(file)
-                            filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                        api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
 
-                            j1 = requests.post(
-                                url,
-                                headers=headers,
-                                data={
-                                    'key': api_key,
-                                    'image': b64encode(open(filepath, 'rb').read()),
-                                    'type': 'base64',
-                                    'name': '1.jpg',
-                                    'title': 'Picture no. 1'
-                                }
-                            )
-                            data = json.loads(j1.text)['data']
+                        url = "https://api.imgur.com/3/upload.json"
+                        # im1 = Image.open(file)
+                        filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                            # return data['link']
-                            # return (str(j1))
-                            myquery = {"email": which_user}
-                            newvalues = {"$set": {
-                                "cover_img": data['link'],
-                                "updated_at": datetime.today().strftime('%d-%m-%Y')
-                            }}
-
-                            normalusercol.update_one(myquery, newvalues)
-
-                            retJson = {
-                                "status": "ok",
-                                "msg": "Cover image updated"
+                        j1 = requests.post(
+                            url,
+                            headers=headers,
+                            data={
+                                'key': api_key,
+                                'image': b64encode(open(filepath, 'rb').read()),
+                                'type': 'base64',
+                                'name': '1.jpg',
+                                'title': 'Picture no. 1'
                             }
-                            return jsonify(retJson)
+                        )
+                        data = json.loads(j1.text)['data']
+
+                        # return data['link']
+                        # return (str(j1))
+                        myquery = {"email": which_user}
+                        newvalues = {"$set": {
+                            "cover_img": data['link'],
+                            "updated_at": datetime.today().strftime('%d-%m-%Y')
+                        }}
+
+                        normalusercol.update_one(myquery, newvalues)
+
+                        retJson = {
+                            "status": "ok",
+                            "msg": "Cover image updated"
+                        }
+                        return jsonify(retJson)
+
+
+
 
                 # work to do
             if request.method == 'POST':
