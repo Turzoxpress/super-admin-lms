@@ -539,6 +539,9 @@ class SuperAdminProfileInfoUpdate(Resource):
                 religion = postedData["religion"]
                 designation = postedData["designation"]
 
+                date_of_joining = postedData["date_of_joining"]
+                employee_id = postedData["employee_id"]
+
                 myquery = {"email": which_user}
                 newvalues = {"$set": {
                     "username": fname,
@@ -553,6 +556,8 @@ class SuperAdminProfileInfoUpdate(Resource):
                     "gender": gender,
                     "religion": religion,
                     "designation": designation,
+                    "date_of_joining": date_of_joining,
+                    "employee_id": employee_id,
                     "updated_at": datetime.today().strftime('%d-%m-%Y')
                 }}
 
@@ -579,6 +584,8 @@ class SuperAdminProfileInfoUpdate(Resource):
             nid = postedData["nid"]
             religion = postedData["religion"]
             designation = postedData["designation"]
+
+
 
             myquery = {"email": which_user}
             newvalues = {"$set": {
@@ -716,6 +723,9 @@ class GetSuperAdminProfileInfo(Resource):
                     user_data["nid"] = str(i["nid"])
                     user_data["designation"] = str(i["designation"])
                     user_data["role"] = str(i["role"])
+
+                    user_data["date_of_joining"] = str(i["date_of_joining"])
+                    user_data["employee_id"] = str(i["employee_id"])
                     # holder.append(user_data)
 
                 retJson = {
@@ -842,32 +852,16 @@ class SuperAdminAddressUpdate(Resource):
 
                 # Get the data
                 address = postedData["address"]
-                post_office = postedData["post_office"]
-                post_code = postedData["post_code"]
-                thana = postedData["thana"]
-                district = postedData["district"]
-                division = postedData["division"]
+
                 per_address = postedData["per_address"]
-                per_post_office = postedData["per_post_office"]
-                per_post_code = postedData["per_post_code"]
-                per_thana = postedData["per_thana"]
-                per_district = postedData["per_district"]
-                per_division = postedData["per_division"]
+
 
                 myquery = {"email": which_user}
                 newvalues = {"$set": {
                     "address": address,
-                    "post_office": post_office,
-                    "post_code": post_code,
-                    "thana": thana,
-                    "district": district,
-                    "division": division,
+
                     "per_address": per_address,
-                    "per_post_office": per_post_office,
-                    "per_post_code": per_post_code,
-                    "per_thana": per_thana,
-                    "per_district": per_district,
-                    "per_division": per_division,
+
                     "updated_at": datetime.today().strftime('%d-%m-%Y')
                 }}
 
@@ -1013,17 +1007,9 @@ class GetSuperAdminAddress(Resource):
                     user_data["id"] = str(i["_id"])
                     user_data["user_id"] = str(i["_id"])
                     user_data["address"] = str(i["address"])
-                    user_data["post_office"] = str(i["post_office"])
-                    user_data["post_code"] = str(i["post_code"])
-                    user_data["thana"] = str(i["thana"])
-                    user_data["district"] = str(i["district"])
-                    user_data["division"] = str(i["division"])
+
                     user_data["per_address"] = str(i["per_address"])
-                    user_data["per_post_office"] = str(i["per_post_office"])
-                    user_data["per_post_code"] = str(i["per_post_code"])
-                    user_data["per_thana"] = str(i["per_thana"])
-                    user_data["per_district"] = str(i["per_district"])
-                    user_data["per_division"] = str(i["per_division"])
+
                     # holder.append(user_data)
 
                 retJson = {
@@ -1547,7 +1533,6 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
 
         # Get the data
         email = postedData["email"]
-
         # Check user with email
         if not UserExist(email):
             retJson = {
@@ -4034,6 +4019,9 @@ class RegisterNewUserNormal(Resource):
         date_of_birth = postedData["date_of_birth"]
         gender = postedData["gender"]
 
+        date_of_joining = postedData["date_of_joining"]
+        employee_id = postedData["employee_id"]
+
         if UserExistNormal(email):
             retJson = {
                 'status': 301,
@@ -4085,6 +4073,9 @@ class RegisterNewUserNormal(Resource):
 
             "avatar_img": "",
             "cover_img": "",
+
+            "date_of_joining": date_of_joining,
+            "employee_id": employee_id,
 
             "updated_at": datetime.today().strftime('%d-%m-%Y')
 
@@ -4157,6 +4148,8 @@ class GetAllUserNormalList(Resource):
 
             result = normalusercol.find({})
 
+
+
             holder = []
             for i in result:
                 data = {
@@ -4175,20 +4168,16 @@ class GetAllUserNormalList(Resource):
                     "nationality": str(i["nationality"]),
                     "nid": str(i["nid"]),
                     "gender": str(i["gender"]),
+
+                    "date_of_joining": str(i["date_of_joining"]),
+                    "employee_id": str(i["employee_id"]),
+
                     "religion": str(i["religion"]),
                     "designation": str(i["designation"]),
                     "address": str(i["address"]),
-                    "post_office": str(i["post_office"]),
-                    "post_code": str(i["post_code"]),
-                    "thana": str(i["thana"]),
-                    "district": str(i["district"]),
-                    "division": str(i["division"]),
+
                     "per_address": str(i["per_address"]),
-                    "per_post_office": str(i["per_post_office"]),
-                    "per_post_code": str(i["per_post_code"]),
-                    "per_thana": str(i["per_thana"]),
-                    "per_district": str(i["per_district"]),
-                    "per_division": str(i["per_division"]),
+
                     "avatar_img": str(i["avatar_img"]),
                     "cover_img": str(i["cover_img"]),
                     "updated_at": str(i["updated_at"])
@@ -4437,17 +4426,13 @@ class NormalUserAddressUpdate(Resource):
             # Get the data
             email = postedData["email"]
             address = postedData["address"]
-            post_office = postedData["post_office"]
-            post_code = postedData["post_code"]
-            thana = postedData["thana"]
-            district = postedData["district"]
-            division = postedData["division"]
+
             per_address = postedData["per_address"]
-            per_post_office = postedData["per_post_office"]
-            per_post_code = postedData["per_post_code"]
-            per_thana = postedData["per_thana"]
-            per_district = postedData["per_district"]
-            per_division = postedData["per_division"]
+
+
+
+
+
 
             # Check user with email
             if not UserExistNormal(email):
@@ -4460,17 +4445,9 @@ class NormalUserAddressUpdate(Resource):
             myquery = {"email": email}
             newvalues = {"$set": {
                 "address": address,
-                "post_office": post_office,
-                "post_code": post_code,
-                "thana": thana,
-                "district": district,
-                "division": division,
+
                 "per_address": per_address,
-                "per_post_office": per_post_office,
-                "per_post_code": per_post_code,
-                "per_thana": per_thana,
-                "per_district": per_district,
-                "per_division": per_division,
+
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
             }}
 
@@ -4566,6 +4543,9 @@ class NormalUserProfileInfoUpdate(Resource):
             religion = postedData["religion"]
             designation = postedData["designation"]
 
+            date_of_joining = postedData["date_of_joining"]
+            employee_id = postedData["employee_id"]
+
             # Check user with email
             if not UserExistNormal(email):
                 retJson = {
@@ -4588,6 +4568,10 @@ class NormalUserProfileInfoUpdate(Resource):
                 "gender": gender,
                 "religion": religion,
                 "designation": designation,
+
+                "date_of_joining": date_of_joining,
+                "employee_id": employee_id,
+
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
             }}
 
@@ -4975,6 +4959,11 @@ class GetNormalUserProfileInfo(Resource):
                 user_data["nid"] = str(i["nid"])
                 user_data["designation"] = str(i["designation"])
                 user_data["role"] = str(i["role"])
+
+                user_data["date_of_joining"] = str(i["date_of_joining"])
+                user_data["employee_id"] = str(i["employee_id"])
+
+
                 # holder.append(user_data)
 
             retJson = {
@@ -5076,18 +5065,9 @@ class GetNormalUserAddress(Resource):
                 user_data["id"] = str(i["_id"])
                 user_data["user_id"] = str(i["_id"])
                 user_data["address"] = str(i["address"])
-                user_data["post_office"] = str(i["post_office"])
-                user_data["post_code"] = str(i["post_code"])
-                user_data["thana"] = str(i["thana"])
-                user_data["district"] = str(i["district"])
-                user_data["division"] = str(i["division"])
+
                 user_data["per_address"] = str(i["per_address"])
-                user_data["per_post_office"] = str(i["per_post_office"])
-                user_data["per_post_code"] = str(i["per_post_code"])
-                user_data["per_thana"] = str(i["per_thana"])
-                user_data["per_district"] = str(i["per_district"])
-                user_data["per_division"] = str(i["per_division"])
-                # holder.append(user_data)
+
 
             retJson = {
                 "status": "ok",
