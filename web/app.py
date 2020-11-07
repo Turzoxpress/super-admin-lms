@@ -5046,7 +5046,7 @@ class GetNormalUserAddress(Resource):
             # get the data
             postedData = request.get_json()
 
-            # Get the data
+            # Get the data a
             email = postedData["email"]
 
             # Check user with email
