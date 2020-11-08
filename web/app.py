@@ -437,6 +437,54 @@ class UpdateSuperAdminPassword(Resource):
                 return jsonify(retJson)
 
             else:
+
+                if not UserExist(email):
+                    """retJson = {
+                        'status': 301,
+                        'msg': 'No user exist with this username'
+                    }
+                    return jsonify(retJson)"""
+
+                    if not UserExistNormal(email):
+                        retJson = {
+                            'status': 301,
+                            'msg': 'No user exist with this username'
+                        }
+                        return jsonify(retJson)
+
+                    # return 'Ready to do next job'
+                    hashed_pw = normalusercol.find({
+                        "email": email
+                    })[0]["password"]
+
+                    if bcrypt.hashpw(old_password.encode('utf8'), hashed_pw) == hashed_pw:
+                        # return 'Ready to do next job'
+                        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+                        myquery = {"email": email}
+                        newvalues = {"$set": {
+                            "password": hashed_pw,
+                            "updated_at": datetime.today().strftime('%d-%m-%Y')
+                        }}
+
+                        normalusercol.update_one(myquery, newvalues)
+
+                        retJson = {
+                            "status": "ok",
+                            "msg": "Password updated"
+                        }
+                        return jsonify(retJson)
+
+                    else:
+                        # return 'Old password is wrong!'
+                        retJson = {
+                            "status": "failed",
+                            "msg": "Old password is wrong!"
+                        }
+                        return jsonify(retJson)
+
+
+
                 # return 'Ready to do next job'
                 hashed_pw = superad.find({
                     "email": email
