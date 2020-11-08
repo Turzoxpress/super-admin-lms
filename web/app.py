@@ -1214,123 +1214,114 @@ class SuperAdminAvatarImageUpload(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
+            email = request.form['email']
+
             # Check user with email
-            if not UserExist(which_user):
-                if not UserExistNormal(which_user):
+            if not UserExist(email):
+                if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
-                        "msg": "Invalid access token"
+                        "msg": "User not found with this email"
                     }
 
                     return jsonify(retJson)
 
                 # work to do
                 if request.method == 'POST':
-                    # check if the post request has the file part
-                    if 'avatar_img' not in request.files:
-                        flash('No file part')
-                        return redirect(request.url)
-                    file = request.files['avatar_img']
-                    # if user does not select file, browser also
-                    # submit an empty part without filename
-                    if file.filename == '':
-                        flash('No selected file')
-                        return redirect(request.url)
-                    if file and allowed_file(file.filename):
-                        filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
-                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                        # return jsonify({"status": "uploaded"})
-                        client_id = 'cc2c0f99f595668'
-                        headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+                    attachmentPath = ""
 
-                        api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
 
-                        url = "https://api.imgur.com/3/upload.json"
-                        # im1 = Image.open(file)
+                    ############################ Attachment upload
+
+                    if 'avatar_img' in request.files:
+                        file_attachment = request.files['avatar_img']
+                        filename = str(time.time_ns()) + "_" + file_attachment.filename
+                        file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
                         filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                        j1 = requests.post(
-                            url,
-                            headers=headers,
-                            data={
-                                'key': api_key,
-                                'image': b64encode(open(filepath, 'rb').read()),
-                                'type': 'base64',
-                                'name': '1.jpg',
-                                'title': 'Picture no. 1'
-                            }
-                        )
-                        data = json.loads(j1.text)['data']
+                        url = file_upload_server_path_php
 
-                        # return data['link']
-                        # return (str(j1))
-                        myquery = {"email": which_user}
-                        newvalues = {"$set": {
-                            "avatar_img": data['link'],
-                            "updated_at": datetime.today().strftime('%d-%m-%Y')
-                        }}
+                        payload = {'main_url': file_upload_server_path}
+                        files = [
+                            ('fileToUpload', open(filepath, 'rb'))
+                        ]
+                        headers = {}
 
-                        normalusercol.update_one(myquery, newvalues)
+                        response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                        # return response.text
+                        data = json.loads(response.text)['message']
+                        attachmentPath = data
+                    else:
+                        attachmentPath = ""
 
-                        retJson = {
-                            "status": "ok",
-                            "msg": "Avatar image updated"
-                        }
-                        return jsonify(retJson)
+                        ############################ end of attachement upload
 
-                # work to do
-            if request.method == 'POST':
-                # check if the post request has the file part
-                if 'avatar_img' not in request.files:
-                    flash('No file part')
-                    return redirect(request.url)
-                file = request.files['avatar_img']
-                # if user does not select file, browser also
-                # submit an empty part without filename
-                if file.filename == '':
-                    flash('No selected file')
-                    return redirect(request.url)
-                if file and allowed_file(file.filename):
-                    filename = str(time.time_ns()) + file.filename  # secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    # return jsonify({"status": "uploaded"})
-                    client_id = 'cc2c0f99f595668'
-                    headers = {"Authorization": "Client-ID cc2c0f99f595668"}
+                        ############################ Image upload
 
-                    api_key = 'b84299a7fc0ab710f3f13b5e91de231f52aa2a22'
-
-                    url = "https://api.imgur.com/3/upload.json"
-                    # im1 = Image.open(file)
-                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-                    j1 = requests.post(
-                        url,
-                        headers=headers,
-                        data={
-                            'key': api_key,
-                            'image': b64encode(open(filepath, 'rb').read()),
-                            'type': 'base64',
-                            'name': '1.jpg',
-                            'title': 'Picture no. 1'
-                        }
-                    )
-                    data = json.loads(j1.text)['data']
-
-                    # return data['link']
                     # return (str(j1))
-                    myquery = {"email": which_user}
+                    myquery = {"email": email}
                     newvalues = {"$set": {
-                        "avatar_img": data['link'],
+                        "avatar_img": attachmentPath,
                         "updated_at": datetime.today().strftime('%d-%m-%Y')
                     }}
 
-                    superad.update_one(myquery, newvalues)
+                    normalusercol.update_one(myquery, newvalues)
 
                     retJson = {
                         "status": "ok",
-                        "msg": "Avatar image updated"
+                        "msg": "Avatar image updated",
+                        "path": attachmentPath
                     }
                     return jsonify(retJson)
+
+                # work to do
+            if request.method == 'POST':
+                attachmentPath = ""
+
+                ############################ Attachment upload
+
+                if 'avatar_img' in request.files:
+                    file_attachment = request.files['avatar_img']
+                    filename = str(time.time_ns()) + "_" + file_attachment.filename
+                    file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    url = file_upload_server_path_php
+
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
+
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    attachmentPath = data
+                else:
+                    attachmentPath = ""
+
+                    ############################ end of attachement upload
+
+                    ############################ Image upload
+
+                # return (str(j1))
+                myquery = {"email": email}
+                newvalues = {"$set": {
+                    "avatar_img": attachmentPath,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+                }}
+
+                superad.update_one(myquery, newvalues)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Avatar image updated",
+                    "path": attachmentPath
+                }
+                return jsonify(retJson)
 
 
 
