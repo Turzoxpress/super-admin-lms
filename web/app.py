@@ -101,6 +101,8 @@ class RegisterSuperAdmin(Resource):
         # Get the data
         email = postedData["email"]
         password = postedData["password"]
+        date_of_joining = postedData["date_of_joining"]
+        employee_id = postedData["employee_id"]
 
         if UserExist(email):
             retJson = {
@@ -116,6 +118,8 @@ class RegisterSuperAdmin(Resource):
             "email": email,
             "password": hashed_pw,
             "role": "Super Admin",
+            "date_of_joining": date_of_joining,
+            "employee_id": employee_id,
             "created_at": datetime.today().strftime('%d-%m-%Y')
 
         })
@@ -168,7 +172,7 @@ class DeleteAllData(Resource):
 
         retJson = {
             "status": "ok",
-            "msg": "All collection data deleted successfully!"
+            "msg": "All super admin collection data deleted successfully!"
         }
 
         return jsonify(retJson)
@@ -238,12 +242,22 @@ class SuperAdminLogin(Resource):
                 "email": email
             })[0]["role"]
 
+            date_of_joining = normalusercol.find({
+                "email": email
+            })[0]["date_of_joining"]
+
+            employee_id = normalusercol.find({
+                "email": email
+            })[0]["employee_id"]
+
             # -- Generate an access token
             retJson = {
                 'status': 200,
                 'msg': {
                     "id": str(userid),
                     "role": str(role),
+                    "date_of_joining": str(date_of_joining),
+                    "employee_id": str(employee_id),
                     "token": generateAuthToken(email)
                 }
             }
@@ -267,12 +281,22 @@ class SuperAdminLogin(Resource):
             "email": email
         })[0]["role"]
 
+        date_of_joining = normalusercol.find({
+            "email": email
+        })[0]["date_of_joining"]
+
+        employee_id = normalusercol.find({
+            "email": email
+        })[0]["employee_id"]
+
         # -- Generate an access token
         retJson = {
             'status': "ok",
             'msg': {
                 "id": str(userid),
                 "role": str(role),
+                "date_of_joining": str(date_of_joining),
+                "employee_id": str(employee_id),
                 "token": generateAuthToken(email)
             }
         }
@@ -401,6 +425,7 @@ class UpdateSuperAdminPassword(Resource):
             postedData = request.get_json()
 
             # Get the data
+            email = postedData["email"]
             old_password = postedData["old_password"]
             password = postedData["password"]
             password_confirmation = postedData["password_confirmation"]
@@ -414,14 +439,14 @@ class UpdateSuperAdminPassword(Resource):
             else:
                 # return 'Ready to do next job'
                 hashed_pw = superad.find({
-                    "email": which_user
+                    "email": email
                 })[0]["password"]
 
                 if bcrypt.hashpw(old_password.encode('utf8'), hashed_pw) == hashed_pw:
                     # return 'Ready to do next job'
                     hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
-                    myquery = {"email": which_user}
+                    myquery = {"email": email}
                     newvalues = {"$set": {
                         "password": hashed_pw,
                         "updated_at": datetime.today().strftime('%d-%m-%Y')
@@ -513,9 +538,29 @@ class SuperAdminProfileInfoUpdate(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
+            fname = postedData["fname"]
+            lname = postedData["lname"]
+            mobile = postedData["mobile"]
+            date_of_birth = postedData["date_of_birth"]
+            place_of_birth = postedData["place_of_birth"]
+            gender = postedData["gender"]
+            marital_status = postedData["marital_status"]
+            nationality = postedData["nationality"]
+            nid = postedData["nid"]
+            religion = postedData["religion"]
+            designation = postedData["designation"]
+
+            date_of_joining = postedData["date_of_joining"]
+            employee_id = postedData["employee_id"]
+
             # Check user with email
-            if not UserExist(which_user):
-                if not UserExistNormal(which_user):
+            if not UserExist(email):
+                if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
                         "msg": "Invalid access token"
@@ -524,25 +569,12 @@ class SuperAdminProfileInfoUpdate(Resource):
                     return jsonify(retJson)
 
                 # get the data
-                postedData = request.get_json()
+                #postedData = request.get_json()
 
                 # Get the data
-                fname = postedData["fname"]
-                lname = postedData["lname"]
-                mobile = postedData["mobile"]
-                date_of_birth = postedData["date_of_birth"]
-                place_of_birth = postedData["place_of_birth"]
-                gender = postedData["gender"]
-                marital_status = postedData["marital_status"]
-                nationality = postedData["nationality"]
-                nid = postedData["nid"]
-                religion = postedData["religion"]
-                designation = postedData["designation"]
 
-                date_of_joining = postedData["date_of_joining"]
-                employee_id = postedData["employee_id"]
 
-                myquery = {"email": which_user}
+                myquery = {"email": email}
                 newvalues = {"$set": {
                     "username": fname,
                     "fname": fname,
@@ -570,24 +602,14 @@ class SuperAdminProfileInfoUpdate(Resource):
                 return jsonify(retJson)
 
             # get the data
-            postedData = request.get_json()
+            #postedData = request.get_json()
 
             # Get the data
-            fname = postedData["fname"]
-            lname = postedData["lname"]
-            mobile = postedData["mobile"]
-            date_of_birth = postedData["date_of_birth"]
-            place_of_birth = postedData["place_of_birth"]
-            gender = postedData["gender"]
-            marital_status = postedData["marital_status"]
-            nationality = postedData["nationality"]
-            nid = postedData["nid"]
-            religion = postedData["religion"]
-            designation = postedData["designation"]
 
 
 
-            myquery = {"email": which_user}
+
+            myquery = {"email": email}
             newvalues = {"$set": {
                 "username": fname,
                 "fname": fname,
@@ -601,6 +623,8 @@ class SuperAdminProfileInfoUpdate(Resource):
                 "gender": gender,
                 "religion": religion,
                 "designation": designation,
+                "date_of_joining": date_of_joining,
+                "employee_id": employee_id,
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
             }}
 
@@ -637,7 +661,7 @@ class SuperAdminProfileInfoUpdate(Resource):
 
 # -- Get Super Admin profile info
 class GetSuperAdminProfileInfo(Resource):
-    def get(self):
+    def post(self):
         auth_header_value = request.headers.get('Authorization', None)
 
         if not auth_header_value:
@@ -683,8 +707,13 @@ class GetSuperAdminProfileInfo(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
             # Check user with email
-            if not UserExist(which_user):
+            if not UserExist(email):
                 """retJson = {
                     "status": "failed",
                     "msg": "Invalid access token"
@@ -692,15 +721,15 @@ class GetSuperAdminProfileInfo(Resource):
 
                 return jsonify(retJson)"""
 
-                if not UserExistNormal(which_user):
+                if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
-                        "msg": "Invalid access token"
+                        "msg": "Email not found"
                     }
 
                     return jsonify(retJson)
 
-                result = normalusercol.find({"email": which_user})
+                result = normalusercol.find({"email": email})
                 holder = []
                 user_data = {}
                 for i in result:
@@ -734,7 +763,7 @@ class GetSuperAdminProfileInfo(Resource):
                 }
                 return jsonify(retJson)
 
-            result = superad.find({"email": which_user})
+            result = superad.find({"email": email})
             holder = []
             user_data = {}
             for i in result:
@@ -836,16 +865,21 @@ class SuperAdminAddressUpdate(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
             # get the data
             postedData = request.get_json()
 
             # Check user with email
-            if not UserExist(which_user):
+            if not UserExist(email):
                 # --------------
-                if not UserExistNormal(which_user):
+                if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
-                        "msg": "Invalid access token"
+                         "msg": "Email not found"
                     }
 
                     return jsonify(retJson)
@@ -856,7 +890,7 @@ class SuperAdminAddressUpdate(Resource):
                 per_address = postedData["per_address"]
 
 
-                myquery = {"email": which_user}
+                myquery = {"email": email}
                 newvalues = {"$set": {
                     "address": address,
 
@@ -881,32 +915,16 @@ class SuperAdminAddressUpdate(Resource):
 
             # Get the data
             address = postedData["address"]
-            post_office = postedData["post_office"]
-            post_code = postedData["post_code"]
-            thana = postedData["thana"]
-            district = postedData["district"]
-            division = postedData["division"]
+
             per_address = postedData["per_address"]
-            per_post_office = postedData["per_post_office"]
-            per_post_code = postedData["per_post_code"]
-            per_thana = postedData["per_thana"]
-            per_district = postedData["per_district"]
-            per_division = postedData["per_division"]
+
 
             myquery = {"email": which_user}
             newvalues = {"$set": {
                 "address": address,
-                "post_office": post_office,
-                "post_code": post_code,
-                "thana": thana,
-                "district": district,
-                "division": division,
+
                 "per_address": per_address,
-                "per_post_office": per_post_office,
-                "per_post_code": per_post_code,
-                "per_thana": per_thana,
-                "per_district": per_district,
-                "per_division": per_division,
+
                 "updated_at": datetime.today().strftime('%d-%m-%Y')
             }}
 
@@ -943,7 +961,7 @@ class SuperAdminAddressUpdate(Resource):
 
 # -- Get Super Admin address
 class GetSuperAdminAddress(Resource):
-    def get(self):
+    def post(self):
         auth_header_value = request.headers.get('Authorization', None)
 
         if not auth_header_value:
@@ -989,17 +1007,22 @@ class GetSuperAdminAddress(Resource):
             # return payload['sub']
             which_user = payload['sub']
 
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
             # Check user with email
-            if not UserExist(which_user):
-                if not UserExistNormal(which_user):
+            if not UserExist(email):
+                if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
-                        "msg": "Invalid access token"
+                        "msg": "Email not found"
                     }
 
                     return jsonify(retJson)
 
-                result = normalusercol.find({"email": which_user})
+                result = normalusercol.find({"email": email})
                 holder = []
                 user_data = {}
                 for i in result:
@@ -1018,7 +1041,7 @@ class GetSuperAdminAddress(Resource):
                 }
                 return jsonify(retJson)
 
-            result = superad.find({"email": which_user})
+            result = superad.find({"email": email})
             holder = []
             user_data = {}
             for i in result:
@@ -1026,17 +1049,9 @@ class GetSuperAdminAddress(Resource):
                 user_data["id"] = str(i["_id"])
                 user_data["user_id"] = str(i["_id"])
                 user_data["address"] = str(i["address"])
-                user_data["post_office"] = str(i["post_office"])
-                user_data["post_code"] = str(i["post_code"])
-                user_data["thana"] = str(i["thana"])
-                user_data["district"] = str(i["district"])
-                user_data["division"] = str(i["division"])
+
                 user_data["per_address"] = str(i["per_address"])
-                user_data["per_post_office"] = str(i["per_post_office"])
-                user_data["per_post_code"] = str(i["per_post_code"])
-                user_data["per_thana"] = str(i["per_thana"])
-                user_data["per_district"] = str(i["per_district"])
-                user_data["per_division"] = str(i["per_division"])
+
                 # holder.append(user_data)
 
             retJson = {
@@ -6349,6 +6364,14 @@ class UserCommonLogin(Resource):
                 "email": email
             })[0]["role"]
 
+            date_of_joining = normalusercol.find({
+                "email": email
+            })[0]["date_of_joining"]
+
+            employee_id = normalusercol.find({
+                "email": email
+            })[0]["employee_id"]
+
             # ------
             result = usertypecol.find({'typename': role})
 
@@ -6373,6 +6396,8 @@ class UserCommonLogin(Resource):
                 'msg': {
                     "id": str(userid),
                     "token": generateAuthToken(email),
+                    "date_of_joining": str(date_of_joining),
+                    "employee_id": str(employee_id),
                     "role": str(role),
                     "role_details": package_data
                 }
@@ -6397,12 +6422,22 @@ class UserCommonLogin(Resource):
             "email": email
         })[0]["role"]
 
+        date_of_joining = superad.find({
+            "email": email
+        })[0]["date_of_joining"]
+
+        employee_id = superad.find({
+            "email": email
+        })[0]["employee_id"]
+
         # -- Generate an access token
         retJson = {
             'status': "ok",
             'msg': {
                 "id": str(userid),
                 "token": generateAuthToken(email),
+                "date_of_joining": str(date_of_joining),
+                "employee_id": str(employee_id),
                 "role": str(role)
             }
         }
