@@ -611,7 +611,7 @@ class SuperAdminProfileInfoUpdate(Resource):
                 if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
-                        "msg": "Invalid access token"
+                        "msg": "No user found with this email"
                     }
 
                     return jsonify(retJson)
@@ -834,6 +834,9 @@ class GetSuperAdminProfileInfo(Resource):
                 user_data["nid"] = str(i["nid"])
                 user_data["designation"] = str(i["designation"])
                 user_data["role"] = str(i["role"])
+
+                user_data["date_of_joining"] = str(i["date_of_joining"])
+                user_data["employee_id"] = str(i["employee_id"])
                 # holder.append(user_data)
 
             retJson = {
@@ -927,7 +930,7 @@ class SuperAdminAddressUpdate(Resource):
                 if not UserExistNormal(email):
                     retJson = {
                         "status": "failed",
-                         "msg": "Email not found"
+                        "msg": "Email not found"
                     }
 
                     return jsonify(retJson)
@@ -967,7 +970,7 @@ class SuperAdminAddressUpdate(Resource):
             per_address = postedData["per_address"]
 
 
-            myquery = {"email": which_user}
+            myquery = {"email": email}
             newvalues = {"$set": {
                 "address": address,
 
