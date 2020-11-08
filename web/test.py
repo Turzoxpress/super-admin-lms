@@ -1,178 +1,167 @@
-def post(self):
-    auth_header_value = request.headers.get('Authorization', None)
+class SuperAdminCoverImageUpload(Resource):
 
-    if not auth_header_value:
-        # return False
-        retJson = {
-            "status": "failed",
-            "msg": "Invalid access token"
-        }
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
 
-        return jsonify(retJson)
-
-    parts = auth_header_value.split()
-
-    if parts[0].lower() != 'bearer':
-        # return False
-        retJson = {
-            "status": "failed",
-            "msg": "Invalid access token"
-        }
-
-        return jsonify(retJson)
-    elif len(parts) == 1:
-        # return False
-        retJson = {
-            "status": "failed",
-            "msg": "Invalid access token"
-        }
-
-        return jsonify(retJson)
-    elif len(parts) > 2:
-        # return False
-        retJson = {
-            "status": "failed",
-            "msg": "Invalid access token"
-        }
-
-        return jsonify(retJson)
-
-    try:
-        # *******************************************
-        # *******************************************
-        to_address = request.form['to_address']
-        from_address = request.form['from_address']
-
-        title = request.form['title']
-        body = request.form['body']
-        status = request.form['status']
-
-        # Check user is exists with to_address
-        if not UserExist(to_address) and not UserExistNormal(to_address):
+        if not auth_header_value:
+            # return False
             retJson = {
                 "status": "failed",
-                "msg": "Receiver's email not found in the system"
+                "msg": "Invalid access token"
             }
 
             return jsonify(retJson)
 
-        # Check s user is exists with from_address
-        if not UserExist(from_address) and not UserExistNormal(from_address):
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
             retJson = {
                 "status": "failed",
-                "msg": "Sender's email not found in the system"
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
             }
 
             return jsonify(retJson)
 
-        if request.method == 'POST':
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
 
-            attachmentPath = ""
-            imagePath = ""
+            email = request.form['email']
 
-            ############################ Attachment upload
+            # Check user with email
+            if not UserExist(email):
+                if not UserExistNormal(email):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "User no found with this email"
+                    }
 
-            if 'file_attachment' in request.files:
-                file_attachment = request.files['file_attachment']
-                filename = str(time.time_ns()) + "_" + file_attachment.filename
-                file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    return jsonify(retJson)
 
-                filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                # work to do
+                if request.method == 'POST':
+                    if 'cover_img' in request.files:
+                        file_attachment = request.files['cover_img']
+                        filename = str(time.time_ns()) + "_" + file_attachment.filename
+                        file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                url = file_upload_server_path_php
+                        filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                payload = {'main_url': file_upload_server_path}
-                files = [
-                    ('fileToUpload', open(filepath, 'rb'))
-                ]
-                headers = {}
+                        url = file_upload_server_path_php
 
-                response = requests.request("POST", url, headers=headers, data=payload, files=files)
-                # return response.text
-                data = json.loads(response.text)['message']
-                attachmentPath = data
-            else:
-                attachmentPath = ""
+                        payload = {'main_url': file_upload_server_path}
+                        files = [
+                            ('fileToUpload', open(filepath, 'rb'))
+                        ]
+                        headers = {}
 
-            ############################ end of attachement upload
+                        response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                        # return response.text
+                        data = json.loads(response.text)['message']
+                        attachmentPath = data
+                    else:
+                        attachmentPath = ""
 
-            ############################ Image upload
+                        # return data['link']
+                        # return (str(j1))
+                    myquery = {"email": email}
+                    newvalues = {"$set": {
+                        "cover_img": attachmentPath,
+                        "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    }}
 
-            if 'image_attachment' in request.files:
+                    normalusercol.update_one(myquery, newvalues)
 
-                image_attachment = request.files['image_attachment']
-                filename = str(time.time_ns()) + "_" + image_attachment.filename
-                image_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    retJson = {
+                        "status": "ok",
+                        "msg": "Cover image updated",
+                        "path": attachmentPath
+                    }
+                    return jsonify(retJson)
 
-                filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-                url = file_upload_server_path_php
 
-                payload = {'main_url': file_upload_server_path}
-                files = [
-                    ('fileToUpload', open(filepath, 'rb'))
-                ]
-                headers = {}
 
-                response = requests.request("POST", url, headers=headers, data=payload, files=files)
-                # return response.text
-                data = json.loads(response.text)['message']
-                imagePath = data
-            else:
-                imagePath = ""
+                # work to do
+            if request.method == 'POST':
+                if 'cover_img' in request.files:
+                    file_attachment = request.files['cover_img']
+                    filename = str(time.time_ns()) + "_" + file_attachment.filename
+                    file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-            ############################ end of attachement upload
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        sts = emailcol.insert_one({
-            "to_address": to_address,
-            "from_address": from_address,
-            "title": title,
-            "body": body,
-            "status": status,
-            "deleted_by_sender": 0,
-            "deleted_by_receiver": 0,
-            "file_attachement": str(attachmentPath),
-            "image_attachement": str(imagePath),
-            "sending_date": datetime.today().strftime('%d-%m-%Y'),
-            "updated_at": datetime.today().strftime('%d-%m-%Y')
+                    url = file_upload_server_path_php
 
-        }).inserted_id
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
 
-        if status == "draft":
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    attachmentPath = data
+                else:
+                    attachmentPath = ""
+
+                    # return data['link']
+                    # return (str(j1))
+                myquery = {"email": email}
+                newvalues = {"$set": {
+                    "cover_img": attachmentPath,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+                }}
+
+                superad.update_one(myquery, newvalues)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Cover image updated",
+                    "path": attachmentPath
+                }
+                return jsonify(retJson)
+
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
             retJson = {
-                "status": "ok",
-                "msg": "Email saved as draft successfully"
-
+                "status": "failed",
+                "msg": "Invalid access token"
             }
-        else:
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
             retJson = {
-                "status": "ok",
-                "msg": "Email sent successfully"
-
+                "status": "failed",
+                "msg": "Invalid access token"
             }
 
-        return jsonify(retJson)
-
-
-
-
-    # ********************************************************************************************************
-    # ********************************************************************************************************
-
-    except jwt.ExpiredSignatureError:
-        # return 'Signature expired. Please log in again.'
-        retJson = {
-            "status": "failed",
-            "msg": "Invalid access token"
-        }
-
-        return jsonify(retJson)
-
-    except jwt.InvalidTokenError:
-        # return 'Invalid token. Please log in again.'
-        retJson = {
-            "status": "failed",
-            "msg": "Invalid access token"
-        }
-
-        return jsonify(retJson)
+            return jsonify(retJson)

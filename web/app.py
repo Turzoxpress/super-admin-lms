@@ -1568,12 +1568,67 @@ class SuperAdminPasswordResetRequestByEmail(Resource):
         email = postedData["email"]
         # Check user with email
         if not UserExist(email):
-            retJson = {
-                "status": "failed",
-                "msg": "Email not exists"
+            if not UserExistNormal(email):
+                retJson = {
+                    "status": "failed",
+                    "msg": "User not found with this email"
+                }
+
+                return jsonify(retJson)
+
+            iat = datetime.utcnow()
+            exp = iat + timedelta(days=30)
+            nbf = iat
+            payload = {
+                'exp': exp,
+                'iat': iat,
+                'nbf': nbf,
+                # 'aud': str(email)
+            }
+            if email:
+                payload['sub'] = email
+
+            tempData = jwt.encode(
+                payload,
+                str(secret_key),
+                algorithm='HS256'
+            ).decode('utf-8')
+
+            data_to_insert = {"email": email, "token": tempData}
+
+            isTokenInserted = tokenbank.insert_one(data_to_insert)
+
+            url = "http://tuembd.com/test_mail.php?email=" + email + "&token=" + tempData
+
+            payload = {
+                'email': email,
+                'token': tempData
+            }
+            headers = {
+                'Content-Type': 'application/json'
             }
 
-            return jsonify(retJson)
+            # response = requests.request("POST", url, headers=headers, data=payload)
+
+            response = requests.post(
+                url,
+                headers=headers,
+                data={
+                    'email': email,
+                    'token': tempData
+                }
+            )
+            # data = json.loads(response.text)['data']
+
+            # print(response.text.encode('utf8'))
+            retJosn = {
+                "status": "ok",
+                "msg": tempData,
+                "email_status": str(response.text)
+                # "tokenStatus": str(isTokenInserted)
+            }
+
+            return jsonify(retJosn)
 
         iat = datetime.utcnow()
         exp = iat + timedelta(days=30)
@@ -1654,11 +1709,50 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
 
         # Check user with email
         if not UserExist(which_user):
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid access token"
-            }
+            if not UserExistNormal(which_user):
+                retJson = {
+                    "status": "failed",
+                    "msg": "User not found with this email"
+                }
 
+                return jsonify(retJson)
+
+            if password != password_confirmation:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Password & confirm password doesn't matched!"
+                }
+
+                return jsonify(retJson)
+
+            """# Check user with email
+            if not UserExist(email):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Email not exists"
+                }
+
+                return jsonify(retJson)"""
+
+            hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+            myquery = {"email": which_user}
+            newvalues = {"$set": {
+                "password": hashed_pw,
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            normalusercol.update_one(myquery, newvalues)
+
+            deleteToken = {"token": token}
+
+            isTokenDeleted = tokenbank.delete_one(deleteToken)
+
+            retJson = {
+                "status": "ok",
+                "msg": "Password reset success"
+                # "token_status": str(isTokenDeleted)
+            }
             return jsonify(retJson)
 
         if password != password_confirmation:
