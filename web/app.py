@@ -9062,6 +9062,51 @@ class DeleteAllInvoice(Resource):
         }
 
         return jsonify(retJson)
+
+
+# -- Delete everything
+class DeleteEverything(Resource):
+    def get(self):
+
+        superad.drop()
+        tokenbank.drop()
+        packagecol.drop()
+        institutecol.drop()
+        usertypecol.drop()
+        normalusercol.drop()
+        billcol.drop()
+        emailcol.drop()
+        settingspackagecol.drop()
+        settingsinstitutecol.drop()
+
+        retJson = {
+            "status": "ok",
+            "msg": "All data of entire database cleared!"
+        }
+
+        return jsonify(retJson)
+
+# -- Delete everything without super admin
+class DeleteEverythingWithoutSuperAdmin(Resource):
+    def get(self):
+
+        #superad.drop()
+        tokenbank.drop()
+        packagecol.drop()
+        institutecol.drop()
+        usertypecol.drop()
+        normalusercol.drop()
+        billcol.drop()
+        emailcol.drop()
+        settingspackagecol.drop()
+        settingsinstitutecol.drop()
+
+        retJson = {
+            "status": "ok",
+            "msg": "All data of entire database cleared without super admin!"
+        }
+
+        return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -9183,6 +9228,11 @@ api.add_resource(UpdateSettingsInstituteActiveStatus, '/UpdateSettingsInstituteA
 api.add_resource(UpdateSettingsInstitute, '/UpdateSettingsInstitute')
 
 api.add_resource(DeleteAllInvoice, '/DeleteAllInvoice')
+
+
+#---
+api.add_resource(DeleteEverything, '/DeleteEverything')
+api.add_resource(DeleteEverythingWithoutSuperAdmin, '/DeleteEverythingWithoutSuperAdmin')
 
 
 
