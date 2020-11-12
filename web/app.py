@@ -6299,7 +6299,7 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
         try:
             postedData = request.get_json()
 
-            # Get the data
+            # Get the data a
             id = postedData["id"]
 
 
