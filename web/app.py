@@ -6326,7 +6326,7 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
             package_data = {}
 
             for i in result:
-                package_data["id"] = str(i["_id"])
+                package_data["id"] = str(i["integer_id"])
                 package_data["institute_id"] = str(i["institute_id"])
                 package_data["name"] = str(i["name"])
                 package_data["address"] = str(i["address"])
@@ -6334,7 +6334,7 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                 package_data["phone"] = str(i["phone"])
                 package_data["created_at"] = str(i["created_at"])
                 package_data["updated_at"] = str(i["updated_at"])
-                package_data["integer_id"] = str(i["integer_id"])
+                package_data["string_id"] = str(i["_id"])
 
             result2 = billcol.find({"institute_id": institute_id_string})
 
