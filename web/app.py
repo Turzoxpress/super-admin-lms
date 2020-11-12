@@ -6315,16 +6315,16 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                 "integer_id": id
             })[0]["institute_id"]
 
-            retJson = {
+            """retJson = {
                 "int_id": id,
                 "string_id": string_id
             }
-            return jsonify(retJson)
+            return jsonify(retJson)"""
 
 
 
 
-            result = institutecol.find({"institute_id": string_id})
+            result = institutecol.find({"institute_id": str(string_id)})
             package_id_db = ""
             package_data = {}
 
