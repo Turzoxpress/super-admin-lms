@@ -6315,6 +6315,12 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                 "integer_id": id
             })[0]["institute_id"]
 
+            retJson = {
+                "int_id": id,
+                "string_id": string_id
+            }
+            return jsonify(retJson)
+
 
 
 
@@ -6370,6 +6376,7 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                 "status": "failed",
                 "msg": "Not found any data in server"
             }
+            return jsonify(retJson)
 
 
 
