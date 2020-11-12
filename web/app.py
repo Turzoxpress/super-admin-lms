@@ -6311,7 +6311,7 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
 
                 return jsonify(retJson)
 
-            string_id = institutecol.find({
+            institute_id_string = institutecol.find({
                 "integer_id": id
             })[0]["institute_id"]
 
@@ -6321,15 +6321,12 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
             }
             return jsonify(retJson)"""
 
-
-
-
-            result = institutecol.find({"institute_id": str(string_id)})
+            result = institutecol.find({"institute_id": institute_id_string})
             package_id_db = ""
             package_data = {}
 
             for i in result:
-                package_data["id"] = int(i["integer_id"])
+                package_data["id"] = str(i["_id"])
                 package_data["institute_id"] = str(i["institute_id"])
                 package_data["name"] = str(i["name"])
                 package_data["address"] = str(i["address"])
@@ -6337,14 +6334,14 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                 package_data["phone"] = str(i["phone"])
                 package_data["created_at"] = str(i["created_at"])
                 package_data["updated_at"] = str(i["updated_at"])
+                package_data["integer_id"] = str(i["integer_id"])
 
-            result2 = billcol.find({"institute_id": string_id})
+            result2 = billcol.find({"institute_id": institute_id_string})
 
             holder = []
-            invoice_counter = 0
             for i in result2:
                 data = {
-                    "id": int(i["integer_id"]),
+                    "id": str(i["_id"]),
                     "institute_id": str(i["institute_id"]),
                     "institute_name": str(i["institute_name"]),
                     "month": str(i["month"]),
@@ -6357,13 +6354,11 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                     "updated_at": str(i["updated_at"])
 
                 }
-                invoice_counter = invoice_counter + 1
 
                 holder.append(data)
 
             retJson = {
                 "status": "ok",
-                "invoice_counter": invoice_counter,
                 "msg": {
                     "details": package_data,
                     "data": holder
@@ -6371,6 +6366,11 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
             }
 
             return jsonify(retJson)
+
+
+
+
+
         except:
             retJson = {
                 "status": "failed",
