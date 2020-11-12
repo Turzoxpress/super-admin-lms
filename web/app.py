@@ -6123,8 +6123,8 @@ class GetAllInstituteListWithInvoice(Resource):
                     "email": GetInstituteEmail(str(i["institute_id"])),
                     "generated_by": str(i["generated_by"]),
                     "created_at": str(i["created_at"]),
-                    "updated_at": str(i["updated_at"]),
-                    "integer_id": str(i["integer_id"])
+                    "updated_at": str(i["updated_at"])
+
 
                 }
 
