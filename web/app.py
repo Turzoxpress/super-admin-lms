@@ -6123,7 +6123,8 @@ class GetAllInstituteListWithInvoice(Resource):
                     "email": GetInstituteEmail(str(i["institute_id"])),
                     "generated_by": str(i["generated_by"]),
                     "created_at": str(i["created_at"]),
-                    "updated_at": str(i["updated_at"])
+                    "updated_at": str(i["updated_at"]),
+                    "integer_id": str(i["integer_id"])
 
                 }
 
@@ -6159,6 +6160,12 @@ class GetAllInstituteListWithInvoice(Resource):
 
 def InstituteExistStringId(id):
     if institutecol.find({"institute_id": id}).count() == 0:
+        return False
+    else:
+        return True
+
+def InstituteExistWithIntegerID(id):
+    if institutecol.find({"integer_id": id}).count() == 0:
         return False
     else:
         return True
@@ -6235,6 +6242,8 @@ class GetAllInvoicesSingleInstitute(Resource):
                 package_data["phone"] = str(i["phone"])
                 package_data["created_at"] = str(i["created_at"])
                 package_data["updated_at"] = str(i["updated_at"])
+                package_data["integer_id"] = str(i["integer_id"])
+
 
             result2 = billcol.find({"institute_id": institute_id_string})
 
@@ -6293,10 +6302,18 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
             # Get the data
             id = postedData["id"]
 
-            res1 = institutecol.find({"integer_id": id})
-            string_id = ""
-            for i in res1:
-                string_id = str(i["institute_id"])
+
+            if not InstituteExistWithIntegerID(id):
+                retJson = {
+                    "status": "failed",
+                    "msg": "No institute found with this id"
+                }
+
+                return jsonify(retJson)
+
+            string_id = institutecol.find({
+                "integer_id": id
+            })[0]["institute_id"]
 
 
 
