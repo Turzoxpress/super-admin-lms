@@ -1845,7 +1845,7 @@ class GetAllPackageList(Resource):
                     "id": str(i["_id"]),
                     "display": str(i["package"]["display"]),
                     "title": str(i["package"]["title"]),
-                    "payable_amount": int(i["package"]["payable_amount"]),
+                    "payable_amount": str(i["package"]["payable_amount"]),
                     "description": str(i["package"]["description"]),
                     "created_at": str(i["package"]["created_at"]),
                     "updated_at": str(i["package"]["updated_at"]),
