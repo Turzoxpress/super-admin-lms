@@ -4152,21 +4152,21 @@ class RegisterNewUserNormal(Resource):
         if UserExist(email):
             retJson = {
                 'status': 301,
-                'msg': 'User already exists with this email, try with a new one!'
+                'msg': 'Email already exists. Try Again!'
             }
             return jsonify(retJson)
 
         if UserExistNormal(email):
             retJson = {
                 'status': 301,
-                'msg': 'User already exists with this email, try with a new one!'
+                'msg': 'Email already exists. Try Again!'
             }
             return jsonify(retJson)
 
         if UserExistNormalWithMobile(mobile):
             retJson = {
                 'status': 301,
-                'msg': 'User already exists with this mobile number, try with a new one!'
+                'msg': 'Mobile no. already exists. Try Again!'
             }
             return jsonify(retJson)
 
@@ -4210,6 +4210,8 @@ class RegisterNewUserNormal(Resource):
 
             "date_of_joining": date_of_joining,
             "employee_id": employee_id,
+
+            "status": 1,
 
             "updated_at": datetime.today().strftime('%d-%m-%Y')
 
@@ -4314,6 +4316,9 @@ class GetAllUserNormalList(Resource):
 
                     "avatar_img": str(i["avatar_img"]),
                     "cover_img": str(i["cover_img"]),
+
+                    "status": str(i["status"]),
+
                     "updated_at": str(i["updated_at"])
 
                 }
@@ -5337,6 +5342,248 @@ class NormalUserPasswordResetReedemByEmail(Resource):
             # "token_status": str(isTokenDeleted)
         }
         return jsonify(retJson)
+
+# -- Normal User Status update
+class NormalUserStatusUpdate(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+
+            # get the data
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+            status = postedData["status"]
+
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this email'
+                }
+                return jsonify(retJson)
+
+            myquery = {"email": email}
+            newvalues = {"$set": {
+                "status": status,
+
+                "updated_at": datetime.today().strftime('%d-%m-%Y')
+            }}
+
+            normalusercol.update_one(myquery, newvalues)
+
+            retJson = {
+                "status": "ok",
+                "msg": "User status updated"
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Get Normal User status
+class GetNormalUserStatus(Resource):
+    def post(self):
+        auth_header_value = request.headers.get('Authorization', None)
+
+        if not auth_header_value:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        parts = auth_header_value.split()
+
+        if parts[0].lower() != 'bearer':
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) == 1:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+        elif len(parts) > 2:
+            # return False
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        try:
+            # *******************************************
+            # *******************************************
+            payload = jwt.decode(parts[1], str(secret_key), algorithms='HS256')
+            # return payload['sub']
+            which_user = payload['sub']
+
+            # get the data
+            postedData = request.get_json()
+
+            # Get the data
+            email = postedData["email"]
+
+            # Check user with email
+            if not UserExistNormal(email):
+                retJson = {
+                    'status': 301,
+                    'msg': 'No user exist with this email'
+                }
+                return jsonify(retJson)
+
+            result = normalusercol.find({"email": email})
+            holder = []
+            user_data = {}
+            for i in result:
+                # user_data = {}
+                user_data["id"] = str(i["_id"])
+                user_data["status"] = str(i["status"])
+                # holder.append(user_data)
+
+            retJson = {
+                "status": "ok",
+                "msg": user_data
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+# -- Normal User Status field add
+class NormalUserStatusFieldAdd(Resource):
+    def get(self):
+        try:
+            # *******************************************
+            # *******************************************
+
+
+
+            data = normalusercol.find()
+
+            for i in data:
+                myquery = {"email": str(i["email"])}
+                newvalues = {"$set": {
+                    "status": 1,
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+                }}
+
+                normalusercol.update_one(myquery, newvalues)
+
+
+
+            data2 = normalusercol.find()
+            holder2 = []
+            for i in data2:
+                holder2.append(i)
+
+            retJson = {
+                "status": "ok",
+                "msg": str(holder2)
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Task was failed"
+            }
+
+            return jsonify(retJson)
 
 
 # -- Get All Institute IDs
@@ -9197,6 +9444,9 @@ api.add_resource(GetNormalUserProfileInfo, '/GetNormalUserProfileInfo')
 api.add_resource(GetNormalUserAddress, '/GetNormalUserAddress')
 api.add_resource(NormalUserPasswordResetRequestByEmail, '/NormalUserPasswordResetRequestByEmail')
 api.add_resource(NormalUserPasswordResetReedemByEmail, '/NormalUserPasswordResetReedemByEmail')
+api.add_resource(NormalUserStatusUpdate, '/NormalUserStatusUpdate')
+api.add_resource(GetNormalUserStatus, '/GetNormalUserStatus')
+api.add_resource(NormalUserStatusFieldAdd, '/NormalUserStatusFieldAdd')
 
 api.add_resource(DeleteAllNormalUser, '/DeleteAllNormalUser')
 
@@ -9212,6 +9462,8 @@ api.add_resource(GetAllInstituteListWithInvoice, '/GetAllInstituteListWithInvoic
 api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute')
 api.add_resource(GetAllInvoicesSingleInstituteSpecial, '/GetAllInvoicesSingleInstituteSpecial')
 api.add_resource(AttachPaymentReceiptWithInvoiceSpecial, '/AttachPaymentReceiptWithInvoiceSpecial')
+
+
 
 
 
