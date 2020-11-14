@@ -3271,6 +3271,15 @@ class GetInstituteDetailsSpecial(Resource):
         return jsonify(retJson)
 
 
+def getPackageNameFromID(id):
+    name = packagecol.find({
+        "_id": id
+    })[0]["package"]["title"]
+    return name #packagecol.find({"package_id": "5fabc454007fe638b25b5307"})[0]["package"]["title"]
+
+
+
+
 # -- Get All Institute List
 class GetAllInstituteList(Resource):
     def get(self):
@@ -3334,7 +3343,10 @@ class GetAllInstituteList(Resource):
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"]),
                     "package_id": str(i["package_id"]),
-                    "integer_id": int(i["integer_id"])
+                    "integer_id": int(i["integer_id"]),
+                    "package_name":  getPackageNameFromID(ObjectId(i["package_id"]))
+
+
                 }
 
                 holder.append(data)
@@ -5678,6 +5690,13 @@ def BillingInvoiceMonthCheck(id,month):
         return True
 
 
+def BillingInvoiceYearCheck(id,year):
+    if billcol.find({"institute_id":id,"year": year}).count() == 0:
+        return False
+    else:
+        return True
+
+
 # -- Create new invoice
 class CreateNewInvoice(Resource):
     def post(self):
@@ -5735,10 +5754,18 @@ class CreateNewInvoice(Resource):
             if BillingInvoiceMonthCheck(institute_id, month):
                 retJson = {
                     "status": "failed",
-                    "msg": "Already generated invoice for this institute in this month"
+                    "msg": "Bill already generated in this month"
                 }
 
                 return jsonify(retJson)
+
+            """if BillingInvoiceYearCheck(institute_id, year):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Bill already generated in this month"
+                }
+
+                return jsonify(retJson)"""
 
             #
             sts = billcol.insert_one({
