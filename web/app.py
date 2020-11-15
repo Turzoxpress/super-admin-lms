@@ -5683,18 +5683,14 @@ class GetAllInstituteIDs(Resource):
 
 
 
-def BillingInvoiceMonthCheck(id,month):
-    if billcol.find({"institute_id":id,"month": month}).count() == 0:
+def BillingInvoiceMonthCheck(id,month,year):
+    if billcol.find({"institute_id": id, "month": month, "year": year}).count() == 0:
         return False
     else:
         return True
 
 
-def BillingInvoiceYearCheck(id,year):
-    if billcol.find({"institute_id":id,"year": year}).count() == 0:
-        return False
-    else:
-        return True
+
 
 
 # -- Create new invoice
@@ -5751,7 +5747,7 @@ class CreateNewInvoice(Resource):
             amount = postedData["amount"]
             generated_by = postedData["generated_by"]
 
-            if BillingInvoiceMonthCheck(institute_id, month):
+            if BillingInvoiceMonthCheck(institute_id, month, year):
                 retJson = {
                     "status": "failed",
                     "msg": "Bill already generated in this month"
