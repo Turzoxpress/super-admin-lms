@@ -6189,8 +6189,8 @@ class UpdateInvoiceApprovalStatus(Resource):
 
             myquery = {"_id": ObjectId(id)}
             newvalues = {"$set": {
-                "status": status,
-                "updated_at": datetime.today().strftime('%d-%m-%Y')
+                "status": status
+                #"updated_at": datetime.today().strftime('%d-%m-%Y')
 
             }}
 
