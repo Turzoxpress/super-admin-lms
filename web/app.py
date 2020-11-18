@@ -1794,117 +1794,7 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
         return jsonify(retJson)
 
 
-# -- Get All Package List
-class GetAllPackageList(Resource):
-    def get(self):
 
-        try:
-            auth_header_value = request.headers.get('Authorization', None)
-
-            if not auth_header_value:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-
-            parts = auth_header_value.split()
-
-            if parts[0].lower() != 'bearer':
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-            elif len(parts) == 1:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-            elif len(parts) > 2:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-
-            result = packagecol.find({})
-
-            holder = []
-            for i in result:
-                data = {
-                    "id": str(i["_id"]),
-                    "display": str(i["package"]["display"]),
-                    "title": str(i["package"]["title"]),
-                    "payable_amount": str(i["package"]["payable_amount"]),
-                    "description": str(i["package"]["description"]),
-                    "created_at": str(i["package"]["created_at"]),
-                    "updated_at": str(i["package"]["updated_at"]),
-                    "type": str(i["package"]["type"]),
-                }
-
-                holder.append(data)
-
-            retJson = {
-                "status": "ok",
-                "msg": holder
-            }
-
-            return jsonify(retJson)
-
-
-        except jwt.ExpiredSignatureError:
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid access token"
-            }
-
-            return jsonify(retJson)
-
-        except jwt.InvalidTokenError:
-            retJson = {
-                "status": "failed",
-                "msg": "Invalid access token"
-            }
-
-            return jsonify(retJson)
-
-
-# -- Get All Package List Special
-class GetAllPackageListSpecial(Resource):
-    def get(self):
-        result = packagecol.find({})
-
-        holder = []
-        for i in result:
-            data = {
-                "id": str(i["_id"]),
-                "display": str(i["package"]["display"]),
-                "title": str(i["package"]["title"]),
-                "payable_amount": int(i["package"]["payable_amount"]),
-                "description": str(i["package"]["description"]),
-                "created_at": str(i["package"]["created_at"]),
-                "updated_at": str(i["package"]["updated_at"]),
-                "type": str(i["package"]["type"]),
-            }
-
-            holder.append(data)
-
-        retJson = {
-            "status": "ok",
-            "msg": holder
-        }
-
-        return jsonify(retJson)
 
 
 def PackageExist(packageid):
@@ -2007,6 +1897,9 @@ class PackageSave(Resource):
                     "description": package['description'],
                     "type": package['type'],
                     "payable_amount": package['payable_amount'],
+                    "monthly_service_charge": package['monthly_service_charge'],
+                    "total_amount": package['total_amount'],
+                    "discounted_amount": package['discounted_amount'],
                     "created_at": datetime.today().strftime('%d-%m-%Y'),
                     "updated_at": datetime.today().strftime('%d-%m-%Y')
 
@@ -2041,6 +1934,169 @@ class PackageSave(Resource):
             }
             return jsonify(retJson)
 
+
+# -- Get All Package List
+class GetAllPackageList(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = packagecol.find({})
+
+            holder = []
+            for i in result:
+                data = {
+                    "id": str(i["_id"]),
+                    "display": str(i["package"]["display"]),
+                    "title": str(i["package"]["title"]),
+                    "payable_amount": str(i["package"]["payable_amount"]),
+                    "monthly_service_charge": str(i["package"]["monthly_service_charge"]),
+                    "total_amount": str(i["package"]["total_amount"]),
+                    "discounted_amount": str(i["package"]["discounted_amount"]),
+                    "description": str(i["package"]["description"]),
+                    "created_at": str(i["package"]["created_at"]),
+                    "updated_at": str(i["package"]["updated_at"]),
+                    "type": str(i["package"]["type"]),
+                }
+
+                holder.append(data)
+
+            retJson = {
+                "status": "ok",
+                "msg": holder
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+
+# -- Get All Package List Special
+class GetAllPackageListSpecial(Resource):
+    def get(self):
+        result = packagecol.find({})
+
+        holder = []
+        for i in result:
+            data = {
+                "id": str(i["_id"]),
+                "display": str(i["package"]["display"]),
+                "title": str(i["package"]["title"]),
+                "payable_amount": int(i["package"]["payable_amount"]),
+                "monthly_service_charge": str(i["package"]["monthly_service_charge"]),
+                "total_amount": str(i["package"]["total_amount"]),
+                "discounted_amount": str(i["package"]["discounted_amount"]),
+                "description": str(i["package"]["description"]),
+                "created_at": str(i["package"]["created_at"]),
+                "updated_at": str(i["package"]["updated_at"]),
+                "type": str(i["package"]["type"]),
+            }
+
+            holder.append(data)
+
+        retJson = {
+            "status": "ok",
+            "msg": holder
+        }
+
+        return jsonify(retJson)
+
+# -- Add package missing fields
+class AddPackageMissingFields(Resource):
+    def get(self):
+        try:
+            # *******************************************
+            # *******************************************
+
+            data = packagecol.find()
+
+            for i in data:
+                myquery = {"_id": ObjectId(i["_id"])}
+                newvalues = {"$set": {
+                    "package.monthly_service_charge": "800",
+                    "package.total_amount": "12800",
+                    "package.discounted_amount": "800"
+                }}
+
+                packagecol.update_one(myquery, newvalues)
+
+
+
+            data2 = packagecol.find()
+            holder2 = []
+            for i in data2:
+                holder2.append(i)
+
+            retJson = {
+                "status": "ok",
+                "msg": str(holder2)
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Task was failed"
+            }
+
+            return jsonify(retJson)
 
 # -- Delete package collection
 class DeleteFullPackage(Resource):
@@ -2146,7 +2202,10 @@ class GetPackageDetails(Resource):
                     package_data["created_at"] = str(i["package"]["created_at"])
                     package_data["updated_at"] = str(i["package"]["updated_at"])
                     package_data["type"] = str(i["package"]["type"])
-                    package_data["payable_amount"] = int(i["package"]["payable_amount"])
+                    package_data["payable_amount"] = str(i["package"]["payable_amount"])
+                    package_data["monthly_service_charge"] = str(i["package"]["monthly_service_charge"])
+                    package_data["total_amount"] = str(i["package"]["total_amount"])
+                    package_data["discounted_amount"] = str(i["package"]["discounted_amount"])
                     package_data["params"] = params
                     holder.append(package_data)
 
@@ -2242,6 +2301,9 @@ class GetPackageDetailsSpecial(Resource):
                 package_data["updated_at"] = str(i["package"]["updated_at"])
                 package_data["type"] = str(i["package"]["type"])
                 package_data["payable_amount"] = int(i["package"]["payable_amount"])
+                package_data["monthly_service_charge"] = str(i["package"]["monthly_service_charge"])
+                package_data["total_amount"] = str(i["package"]["total_amount"])
+                package_data["discounted_amount"] = str(i["package"]["discounted_amount"])
                 package_data["params"] = params
                 holder.append(package_data)
 
@@ -2315,6 +2377,9 @@ class PackageUpdate(Resource):
             display = postedData["display"]
             description = postedData["description"]
             payable_amount = postedData["payable_amount"]
+            monthly_service_charge = postedData["monthly_service_charge"]
+            total_amount = postedData["total_amount"]
+            discounted_amount = postedData["discounted_amount"]
 
 
             # Check id is valid or not
@@ -2335,6 +2400,9 @@ class PackageUpdate(Resource):
                     "package.display": display,
                     "package.description": description,
                     "package.payable_amount": payable_amount,
+                    "package.monthly_service_charge": monthly_service_charge,
+                    "package.total_amount": total_amount,
+                    "package.discounted_amount": discounted_amount,
                     "package.updated_at": datetime.today().strftime('%d-%m-%Y')
                 }}
 
@@ -9532,6 +9600,8 @@ api.add_resource(DeleteAllInvoice, '/DeleteAllInvoice')
 #---
 api.add_resource(DeleteEverything, '/DeleteEverything')
 api.add_resource(DeleteEverythingWithoutSuperAdmin, '/DeleteEverythingWithoutSuperAdmin')
+api.add_resource(AddPackageMissingFields, '/AddPackageMissingFields')
+
 
 
 
