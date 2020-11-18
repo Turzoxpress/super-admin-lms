@@ -2459,6 +2459,14 @@ class PackageUpdate(Resource):
             }
 
 
+
+def IsPackageUsedForInstitute(package_id):
+    if institutecol.find({"package_id": package_id}).count() == 0:
+        return True
+    else:
+        return False
+
+
 # -- Package Delete
 class PackageDelete(Resource):
     def post(self):
@@ -2516,7 +2524,16 @@ class PackageDelete(Resource):
                 if not PackageExist(ObjectId(id)):
                     retJson = {
                         "status": "failed",
-                        "msg": "Package update failed"
+                        "msg": "Package not found"
+                    }
+
+                    return jsonify(retJson)
+
+                # Check id is exist
+                if not IsPackageUsedForInstitute(id):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Package is already used!"
                     }
 
                     return jsonify(retJson)
