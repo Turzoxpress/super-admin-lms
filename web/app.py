@@ -803,6 +803,8 @@ class GetSuperAdminProfileInfo(Resource):
 
                     user_data["date_of_joining"] = str(i["date_of_joining"])
                     user_data["employee_id"] = str(i["employee_id"])
+
+                    user_data["status"] = str(i["status"])
                     # holder.append(user_data)
 
                 retJson = {
@@ -837,6 +839,8 @@ class GetSuperAdminProfileInfo(Resource):
 
                 user_data["date_of_joining"] = str(i["date_of_joining"])
                 user_data["employee_id"] = str(i["employee_id"])
+
+                user_data["status"] = str(i["status"])
                 # holder.append(user_data)
 
             retJson = {
@@ -2533,7 +2537,7 @@ class PackageDelete(Resource):
                 if not IsPackageUsedForInstitute(id):
                     retJson = {
                         "status": "failed",
-                        "msg": "Package is already used!"
+                        "msg": "Package already used!"
                     }
 
                     return jsonify(retJson)
@@ -9503,6 +9507,49 @@ class DeleteEverythingWithoutSuperAdmin(Resource):
         }
 
         return jsonify(retJson)
+
+# -- Add super admin missing fields
+class AddSuperAdminMissingFields(Resource):
+    def get(self):
+        try:
+            # *******************************************
+            # *******************************************
+
+            data = superad.find()
+
+            for i in data:
+                myquery = {"_id": ObjectId(i["_id"])}
+                newvalues = {"$set": {
+                    "status": 1
+                }}
+
+                superad.update_one(myquery, newvalues)
+
+
+
+            data2 = superad.find()
+            holder2 = []
+            for i in data2:
+                holder2.append(i)
+
+            retJson = {
+                "status": "ok",
+                "msg": str(holder2)
+            }
+            return jsonify(retJson)
+
+
+        # ********************************************************************************************************
+        # ********************************************************************************************************
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired. Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Task was failed"
+            }
+
+            return jsonify(retJson)
 # -----------------------------------------------------------------------
 
 
@@ -9635,6 +9682,8 @@ api.add_resource(DeleteAllInvoice, '/DeleteAllInvoice')
 api.add_resource(DeleteEverything, '/DeleteEverything')
 api.add_resource(DeleteEverythingWithoutSuperAdmin, '/DeleteEverythingWithoutSuperAdmin')
 api.add_resource(AddPackageMissingFields, '/AddPackageMissingFields')
+api.add_resource(AddSuperAdminMissingFields, '/AddSuperAdminMissingFields')
+
 
 
 
