@@ -2381,6 +2381,22 @@ class PackageUpdate(Resource):
             total_amount = postedData["total_amount"]
             discounted_amount = postedData["discounted_amount"]
 
+            parameters = postedData["parameters"]
+
+            countT = len(parameters)
+
+            params = []
+            for i in range(countT):
+                data = {
+                    "_id": ObjectId(),
+                    "name": parameters[i]['name'],
+                    "quantity": parameters[i]['quantity'],
+                    "price": parameters[i]['price'],
+                    "created_at": datetime.today().strftime('%d-%m-%Y'),
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
+                }
+                params.append(data)
+
 
             # Check id is valid or not
             if ObjectId.is_valid(id):
@@ -2403,7 +2419,8 @@ class PackageUpdate(Resource):
                     "package.monthly_service_charge": monthly_service_charge,
                     "package.total_amount": total_amount,
                     "package.discounted_amount": discounted_amount,
-                    "package.updated_at": datetime.today().strftime('%d-%m-%Y')
+                    "package.updated_at": datetime.today().strftime('%d-%m-%Y'),
+                    "parameters": params
                 }}
 
                 packagecol.update_one(myquery, newvalues)
@@ -2625,7 +2642,7 @@ class PackageAddNewParameter(Resource):
                 result = packagecol.find({"_id": ObjectId(id)})
 
 
-                dbparams = {}
+                """dbparams = {}
                 for i in result:
                     dbparams = i["parameters"]
 
@@ -2638,7 +2655,7 @@ class PackageAddNewParameter(Resource):
                         "created_at": str(i["created_at"]),
                         "updated_at": str(i["updated_at"])
                     }
-                    params.append(data)
+                    params.append(data)"""
 
                 myquery = {"_id": ObjectId(id)}
 
