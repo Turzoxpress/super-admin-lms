@@ -1864,7 +1864,7 @@ class PackageSave(Resource):
             if PackageExistWithTitle(str(package['title'])):
                 retJson = {
                     "status": "failed",
-                    "msg": "Package already exists with this title"
+                    "msg": "Package name already exists!"
                 }
 
                 return jsonify(retJson)
@@ -2034,7 +2034,7 @@ class GetAllPackageListSpecial(Resource):
                 "id": str(i["_id"]),
                 "display": str(i["package"]["display"]),
                 "title": str(i["package"]["title"]),
-                "payable_amount": int(i["package"]["payable_amount"]),
+                "payable_amount": str(i["package"]["payable_amount"]),
                 "monthly_service_charge": str(i["package"]["monthly_service_charge"]),
                 "total_amount": str(i["package"]["total_amount"]),
                 "discounted_amount": str(i["package"]["discounted_amount"]),
