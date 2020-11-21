@@ -3227,7 +3227,7 @@ class InstituteCreateSpecial(Resource):
                     "password": password,
                     "institute_id_super_admin_module": str(sts),
                     "institute_id_normal_admin_module": int_id,
-                    "masg2": data
+                    "response_from_normal_admin_module": data
 
                 }
 
@@ -3237,7 +3237,7 @@ class InstituteCreateSpecial(Resource):
                     "status": "failed",
                     "msg": "Failed to create institute",
                     "Details": "Unable to create institute in Admin module",
-                    "masg2": data
+                    "response_from_normal_admin_module": data
 
                 }
 
