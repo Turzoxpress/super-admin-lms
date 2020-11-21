@@ -3061,207 +3061,142 @@ class InstituteCreate(Resource):
 class InstituteCreateSpecial(Resource):
     def post(self):
 
-        try:
+        postedData = request.get_json()
 
-            auth_header_value = request.headers.get('Authorization', None)
+        # Get the data
+        package_id = postedData["package_id"]
+        institute_type = postedData["institute_type"]
+        institute_name = postedData["institute_name"]
+        # institute_id = postedData["institute_id"]
+        password = postedData["password"]
+        name = postedData["name"]
+        address = postedData["address"]
+        email = postedData["email"]
+        phone = postedData["phone"]
+        subscription_s_date = postedData["subscription_s_date"]
+        subscription_e_date = postedData["subscription_e_date"]
+        last_payment = postedData["last_payment"]
+        payment_amount = postedData["payment_amount"]
 
-            if not auth_header_value:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
+        # ---
+        part1 = ""
+        part2 = ""
+        part3 = ""
+        if institute_type == "University":
+            part1 = "UNIV"
+        elif institute_type == "College":
+            part1 = "COL"
+        elif institute_type == "School":
+            part1 = "SCH"
+        elif institute_type == "Madhrasha":
+            part1 = "MAD"
+        elif institute_type == "Private Training Center":
+            part1 = "PTC"
 
-                return jsonify(retJson)
+        # ------
+        words = institute_name.split()
+        for i in words:
+            if i != "and" and i != "of" and i != "&":
+                part2 = part2 + i[0]
 
-            parts = auth_header_value.split()
+        now = datetime.now()
+        part3 = now.strftime("%I%M%S")
+        institute_id = part1 + "-" + part2 + "-" + part3
 
-            if parts[0].lower() != 'bearer':
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
+        # ----------------
 
-                return jsonify(retJson)
-            elif len(parts) == 1:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-            elif len(parts) > 2:
-                # return False
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid access token"
-                }
-
-                return jsonify(retJson)
-
-            postedData = request.get_json()
-
-            # Get the data
-            package_id = postedData["package_id"]
-            institute_type = postedData["institute_type"]
-            institute_name = postedData["institute_name"]
-            #institute_id = postedData["institute_id"]
-            password = postedData["password"]
-            name = postedData["name"]
-            address = postedData["address"]
-            email = postedData["email"]
-            phone = postedData["phone"]
-            subscription_s_date = postedData["subscription_s_date"]
-            subscription_e_date = postedData["subscription_e_date"]
-            last_payment = postedData["last_payment"]
-            payment_amount = postedData["payment_amount"]
-
-            #---
-            part1 = ""
-            part2 = ""
-            part3 = ""
-            if institute_type == "University":
-                part1 = "UNIV"
-            elif institute_type == "College":
-                part1 = "COL"
-            elif institute_type == "School":
-                part1 = "SCH"
-            elif institute_type == "Madhrasha":
-                part1 = "MAD"
-            elif institute_type == "Private Training Center":
-                part1 = "PTC"
-
-
-            #------
-            words = institute_name.split()
-            for i in words:
-                if i != "and" and i != "of" and i != "&":
-                    part2 = part2 + i[0]
-
-            now = datetime.now()
-            part3 = now.strftime("%I%M%S")
-            institute_id = part1 + "-" + part2 + "-" + part3
-
-            #----------------
-
-
-
-            # to do
-            # Check id is exist
-            if not PackageExist(ObjectId(package_id)):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Invalid package id"
-                }
-
-                return jsonify(retJson)
-
-            if not InstituteExist(institute_id):
-                retJson = {
-                    "status": "validationError",
-                    "msg": {
-                        "institute_id": [
-                            "The institute id has already been taken."
-                        ]
-                    }
-                }
-
-                return jsonify(retJson)
-
-            hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
-
-            # Store username and pw into the database
-            sts = institutecol.insert_one({
-                "integer_id": SpecialInstituteID(),
-                "package_id": package_id,
-                "institute_id": institute_id,
-                "password": hashed_pw,
-                "name": name,
-                "address": address,
-                "email": email,
-                "phone": phone,
-                "subscription_s_date": subscription_s_date,
-                "subscription_e_date": subscription_e_date,
-                "last_payment": last_payment,
-                "payment_amount": payment_amount,
-                "created_at": datetime.today().strftime('%d-%m-%Y'),
-                "updated_at": datetime.today().strftime('%d-%m-%Y'),
-                "active": 1
-
-            }).inserted_id
-
-            res = institutecol.find({"_id": ObjectId(sts)})
-            int_id = 0;
-            for i in res:
-                int_id = str(i["integer_id"])
-
-
-            #-----Last task
-
-            url = "http://34.66.76.39:9091/api/other/user"
-
-            payload = {
-                "firstName": institute_name,
-                "email": email,
-                "mobile": phone,
-                "username": institute_id,
-                "password": password,
-                "instituteId": int_id
-            }
-            headers = {
-                'Content-Type': 'application/json'
-            }
-
-            response = requests.request("POST", url, headers=headers, json=payload)
-            data = json.loads(response.text)['status']
-
-            # -----------------------------
-
-            if data == "ok":
-                retJson = {
-                    "status": "ok",
-                    "msg": "Institute created successfully",
-                    "username": institute_id,
-                    "password": password,
-                    "institute_id_super_admin_module": str(sts),
-                    "institute_id_normal_admin_module": int_id,
-                    "response_from_normal_admin_module": data
-
-                }
-
-                return jsonify(retJson)
-            else:
-                retJson = {
-                    "status": "failed",
-                    "msg": "Failed to create institute",
-                    "Details": "Unable to create institute in Admin module",
-                    "response_from_normal_admin_module": data
-
-                }
-
-                return jsonify(retJson)
-
-
-
-
-
-
-        except jwt.ExpiredSignatureError:
-            # return 'Signature expired' Please log in again.'
+        # to do
+        # Check id is exist
+        if not PackageExist(ObjectId(package_id)):
             retJson = {
                 "status": "failed",
-                "msg": "Invalid access token"
+                "msg": "Invalid package id"
             }
+
             return jsonify(retJson)
 
-        except jwt.InvalidTokenError:
-            # return 'Invalid token' Please log in again.'
+        if not InstituteExist(institute_id):
+            retJson = {
+                "status": "validationError",
+                "msg": {
+                    "institute_id": [
+                        "The institute id has already been taken."
+                    ]
+                }
+            }
+
+            return jsonify(retJson)
+
+        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+        # Store username and pw into the database
+        sts = institutecol.insert_one({
+            "integer_id": SpecialInstituteID(),
+            "package_id": package_id,
+            "institute_id": institute_id,
+            "password": hashed_pw,
+            "name": name,
+            "address": address,
+            "email": email,
+            "phone": phone,
+            "subscription_s_date": subscription_s_date,
+            "subscription_e_date": subscription_e_date,
+            "last_payment": last_payment,
+            "payment_amount": payment_amount,
+            "created_at": datetime.today().strftime('%d-%m-%Y'),
+            "updated_at": datetime.today().strftime('%d-%m-%Y'),
+            "active": 1
+
+        }).inserted_id
+
+        res = institutecol.find({"_id": ObjectId(sts)})
+        int_id = 0;
+        for i in res:
+            int_id = str(i["integer_id"])
+
+        # -----Last task
+
+        url = "http://34.66.76.39:9091/api/other/user"
+
+        payload = {
+            "firstName": institute_name,
+            "email": email,
+            "mobile": phone,
+            "username": institute_id,
+            "password": password,
+            "instituteId": int_id
+        }
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        data = json.loads(response.text)['status']
+
+        # -----------------------------
+
+        if data == "ok":
+            retJson = {
+                "status": "ok",
+                "msg": "Institute created successfully",
+                "username": institute_id,
+                "password": password,
+                "institute_id_super_admin_module": str(sts),
+                "institute_id_normal_admin_module": int_id,
+                "response_from_normal_admin_module": data
+
+            }
+
+            return jsonify(retJson)
+        else:
             retJson = {
                 "status": "failed",
-                "msg": "Invalid access token"
+                "msg": "Failed to create institute",
+                "Details": "Unable to create institute in Admin module",
+                "response_from_normal_admin_module": data
+
             }
+
             return jsonify(retJson)
 
 
