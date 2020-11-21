@@ -26,7 +26,7 @@ from bson import ObjectId
 
 import geloc
 
-import datetime
+
 
 app = Flask(__name__)
 CORS(app)
@@ -3140,19 +3140,15 @@ class InstituteCreateSpecial(Resource):
                 if i != "and" and i != "of" and i != "&":
                     part2 = part2 + i[0]
 
-            now = datetime.datetime.now()
+            now = datetime.now()
             part3 = now.strftime("%I%M%S")
             institute_id = part1 + "-" + part2 + "-" + part3
 
-            retJson = {
-                "status": "ok",
-                "msg": str(institute_id)
+            #----------------
 
-            }
 
-            return jsonify(retJson)
 
-            """# to do
+            # to do
             # Check id is exist
             if not PackageExist(ObjectId(package_id)):
                 retJson = {
@@ -3202,14 +3198,52 @@ class InstituteCreateSpecial(Resource):
                 int_id = str(i["integer_id"])
 
 
-            retJson = {
-                "status": "ok",
-                "msg": str(sts),
-                "integer_id": int(int_id)
+            #-----Last task
 
+            url = "http://34.66.76.39:9091/api/other/user"
+
+            payload = {
+                "firstName": institute_name,
+                "email": email,
+                "mobile": phone,
+                "username": institute_id,
+                "password": password,
+                "instituteId": int_id
+            }
+            headers = {
+                'Content-Type': 'application/json'
             }
 
-            return jsonify(retJson)"""
+            response = requests.request("POST", url, headers=headers, json=payload)
+            data = json.loads(response.text)['status']
+
+            # -----------------------------
+
+            if data == "ok":
+                retJson = {
+                    "status": "ok",
+                    "msg": "Institute created successfully",
+                    "username": institute_id,
+                    "password": password,
+                    "institute_id_super_admin_module": str(sts),
+                    "institute_id_normal_admin_module": int_id,
+                    "masg2": data
+
+                }
+
+                return jsonify(retJson)
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Failed to create institute",
+                    "Details": "Unable to create institute in Admin module",
+                    "masg2": data
+
+                }
+
+                return jsonify(retJson)
+
+
 
 
 
