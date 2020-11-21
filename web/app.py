@@ -26,6 +26,8 @@ from bson import ObjectId
 
 import geloc
 
+import datetime
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -3035,6 +3037,179 @@ class InstituteCreate(Resource):
             }
 
             return jsonify(retJson)
+
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+# -- Create institute Special Main Site
+class InstituteCreateSpecial(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            package_id = postedData["package_id"]
+            institute_type = postedData["institute_type"]
+            institute_name = postedData["institute_name"]
+            #institute_id = postedData["institute_id"]
+            password = postedData["password"]
+            name = postedData["name"]
+            address = postedData["address"]
+            email = postedData["email"]
+            phone = postedData["phone"]
+            subscription_s_date = postedData["subscription_s_date"]
+            subscription_e_date = postedData["subscription_e_date"]
+            last_payment = postedData["last_payment"]
+            payment_amount = postedData["payment_amount"]
+
+            #---
+            part1 = ""
+            part2 = ""
+            part3 = ""
+            if institute_type == "University":
+                part1 = "UNIV"
+            elif institute_type == "College":
+                part1 = "COL"
+            elif institute_type == "School":
+                part1 = "SCH"
+            elif institute_type == "Madhrasha":
+                part1 = "MAD"
+            elif institute_type == "Private Training Center":
+                part1 = "PTC"
+
+
+            #------
+            words = institute_name.split()
+            for i in words:
+                if i != "and" and i != "of" and i != "&":
+                    part2 = part2 + i[0]
+
+            now = datetime.datetime.now()
+            part3 = now.strftime("%I%M%S")
+            institute_id = part1 + "-" + part2 + "-" + part3
+
+            retJson = {
+                "status": "ok",
+                "msg": str(institute_id)
+
+            }
+
+            return jsonify(retJson)
+
+            """# to do
+            # Check id is exist
+            if not PackageExist(ObjectId(package_id)):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid package id"
+                }
+
+                return jsonify(retJson)
+
+            if not InstituteExist(institute_id):
+                retJson = {
+                    "status": "validationError",
+                    "msg": {
+                        "institute_id": [
+                            "The institute id has already been taken."
+                        ]
+                    }
+                }
+
+                return jsonify(retJson)
+
+            hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+
+            # Store username and pw into the database
+            sts = institutecol.insert_one({
+                "integer_id": SpecialInstituteID(),
+                "package_id": package_id,
+                "institute_id": institute_id,
+                "password": hashed_pw,
+                "name": name,
+                "address": address,
+                "email": email,
+                "phone": phone,
+                "subscription_s_date": subscription_s_date,
+                "subscription_e_date": subscription_e_date,
+                "last_payment": last_payment,
+                "payment_amount": payment_amount,
+                "created_at": datetime.today().strftime('%d-%m-%Y'),
+                "updated_at": datetime.today().strftime('%d-%m-%Y'),
+                "active": 1
+
+            }).inserted_id
+
+            res = institutecol.find({"_id": ObjectId(sts)})
+            int_id = 0;
+            for i in res:
+                int_id = str(i["integer_id"])
+
+
+            retJson = {
+                "status": "ok",
+                "msg": str(sts),
+                "integer_id": int(int_id)
+
+            }
+
+            return jsonify(retJson)"""
 
 
 
@@ -9683,6 +9858,8 @@ api.add_resource(DeleteEverything, '/DeleteEverything')
 api.add_resource(DeleteEverythingWithoutSuperAdmin, '/DeleteEverythingWithoutSuperAdmin')
 api.add_resource(AddPackageMissingFields, '/AddPackageMissingFields')
 api.add_resource(AddSuperAdminMissingFields, '/AddSuperAdminMissingFields')
+
+api.add_resource(InstituteCreateSpecial, '/InstituteCreateSpecial')
 
 
 
