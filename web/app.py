@@ -2919,6 +2919,17 @@ def SpecialInstituteID():
     present_id = previous_id + 1
     return present_id
 
+def InstituteExistWithEmail(email):
+    if institutecol.find({"email": email}).count() == 0:
+        return True
+    else:
+        return False
+
+def InstituteExistWithPhone(phone):
+    if institutecol.find({"phone": phone}).count() == 0:
+        return True
+    else:
+        return False
 
 # -- Create institute
 class InstituteCreate(Resource):
@@ -2997,6 +3008,22 @@ class InstituteCreate(Resource):
                             "The institute id has already been taken."
                         ]
                     }
+                }
+
+                return jsonify(retJson)
+
+            if not InstituteExistWithEmail(email):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Email already exists!"
+                }
+
+                return jsonify(retJson)
+
+            if not InstituteExistWithPhone(phone):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Phone number already exists!"
                 }
 
                 return jsonify(retJson)
