@@ -7763,24 +7763,6 @@ class SaveEmailAsDraft(Resource):
             body = request.form['body']
             status = request.form['status']
 
-            """# Check user is exists with to_address
-            if not UserExist(to_address) and not UserExistNormal(to_address):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Receiver's email not found in the system"
-                }
-
-                return jsonify(retJson)
-
-            # Check s user is exists with from_address
-            if not UserExist(from_address) and not UserExistNormal(from_address):
-                retJson = {
-                    "status": "failed",
-                    "msg": "Sender's email not found in the system"
-                }
-
-                return jsonify(retJson)"""
-
             if request.method == 'POST':
 
                 attachmentPath = ""
@@ -8574,6 +8556,106 @@ class DeleteEmailFromSentBox(Resource):
             }
 
             return jsonify(retJson)
+
+
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
+# -- Delete Email from DraftBox
+class DeleteEmailFromDraftBox(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+
+            # Get the data
+            id = postedData["id"]
+
+            # Check id is valid or not
+            if ObjectId.is_valid(id):
+
+                # Check id is exist
+                if not EmailExistsWithID(ObjectId(id)):
+                    retJson = {
+                        "status": "failed",
+                        "msg": "Email not found with this id"
+                    }
+
+                    return jsonify(retJson)
+
+                myquery = {"_id": ObjectId(id)}
+
+                res = emailcol.delete_one(myquery)
+
+                retJson = {
+                    "status": "ok",
+                    "msg": "Email deleted successfully"
+                }
+
+                return jsonify(retJson)
+
+
+            else:
+                retJson = {
+                    "status": "failed",
+                    "msg": "Email delete failed or invalid id"
+                }
+
+                return jsonify(retJson)
 
 
 
@@ -9829,6 +9911,8 @@ api.add_resource(TrashEmailByReceiver, '/TrashEmailByReceiver')
 api.add_resource(GetEmailForTrashBox, '/GetEmailForTrashBox')
 api.add_resource(DeleteEmailFromInbox, '/DeleteEmailFromInbox')
 api.add_resource(DeleteEmailFromSentBox, '/DeleteEmailFromSentBox')
+api.add_resource(DeleteEmailFromDraftBox, '/DeleteEmailFromDraftBox')
+
 
 
 
