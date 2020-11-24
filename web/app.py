@@ -7277,6 +7277,20 @@ class SendNewEmail(Resource):
 
                 }
 
+                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body
+
+                headers = {
+                    'Content-Type': 'application/json'
+                }
+
+                # response = requests.request("POST", url, headers=headers, data=payload)
+
+                response = requests.post(
+                    url,
+                    headers=headers
+
+                )
+
             return jsonify(retJson)
 
 
@@ -7355,9 +7369,68 @@ class SendNewEmailMulitple(Resource):
             body = request.form['body']
             status = request.form['status']
 
+            attachmentPath = ""
+            imagePath = ""
+            if request.method == 'POST':
 
 
-            x = to_address.split("#")
+
+                ############################ Attachment upload
+
+                if 'file_attachment' in request.files:
+                    file_attachment = request.files['file_attachment']
+                    filename = str(time.time_ns()) + "_" + file_attachment.filename
+                    file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    url = file_upload_server_path_php
+
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
+
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    attachmentPath = data
+                else:
+                    attachmentPath = ""
+
+                ############################ end of attachement upload
+
+                ############################ Image upload
+
+                if 'image_attachment' in request.files:
+
+                    image_attachment = request.files['image_attachment']
+                    filename = str(time.time_ns()) + "_" + image_attachment.filename
+                    image_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                    url = file_upload_server_path_php
+
+                    payload = {'main_url': file_upload_server_path}
+                    files = [
+                        ('fileToUpload', open(filepath, 'rb'))
+                    ]
+                    headers = {}
+
+                    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+                    # return response.text
+                    data = json.loads(response.text)['message']
+                    imagePath = data
+                else:
+                    imagePath = ""
+
+                ############################ end of attachement upload
+
+
+
+            x = to_address.split(",")
 
             for i in x:
                 """# Check s user is exists with from_address
@@ -7369,63 +7442,7 @@ class SendNewEmailMulitple(Resource):
 
                     return jsonify(retJson)"""
 
-                if request.method == 'POST':
 
-                    attachmentPath = ""
-                    imagePath = ""
-
-                    ############################ Attachment upload
-
-                    if 'file_attachment' in request.files:
-                        file_attachment = request.files['file_attachment']
-                        filename = str(time.time_ns()) + "_" + file_attachment.filename
-                        file_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-                        filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-                        url = file_upload_server_path_php
-
-                        payload = {'main_url': file_upload_server_path}
-                        files = [
-                            ('fileToUpload', open(filepath, 'rb'))
-                        ]
-                        headers = {}
-
-                        response = requests.request("POST", url, headers=headers, data=payload, files=files)
-                        # return response.text
-                        data = json.loads(response.text)['message']
-                        attachmentPath = data
-                    else:
-                        attachmentPath = ""
-
-                    ############################ end of attachement upload
-
-                    ############################ Image upload
-
-                    if 'image_attachment' in request.files:
-
-                        image_attachment = request.files['image_attachment']
-                        filename = str(time.time_ns()) + "_" + image_attachment.filename
-                        image_attachment.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-                        filepath = str(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-                        url = file_upload_server_path_php
-
-                        payload = {'main_url': file_upload_server_path}
-                        files = [
-                            ('fileToUpload', open(filepath, 'rb'))
-                        ]
-                        headers = {}
-
-                        response = requests.request("POST", url, headers=headers, data=payload, files=files)
-                        # return response.text
-                        data = json.loads(response.text)['message']
-                        imagePath = data
-                    else:
-                        imagePath = ""
-
-                    ############################ end of attachement upload
 
                 sts = emailcol.insert_one({
                     "to_address": i,
@@ -7441,6 +7458,20 @@ class SendNewEmailMulitple(Resource):
                     "updated_at": datetime.today().strftime('%d-%m-%Y')
 
                 }).inserted_id
+
+                url = "http://tuembd.com/test_mail_2.php?email=" + i + "&subject=" + title + "&body=" + body
+
+                headers = {
+                    'Content-Type': 'application/json'
+                }
+
+                # response = requests.request("POST", url, headers=headers, data=payload)
+
+                response = requests.post(
+                    url,
+                    headers=headers
+
+                )
 
 
 
