@@ -8830,39 +8830,36 @@ class DeleteEmailFromDraftBox(Resource):
             postedData = request.get_json()
 
             # Get the data
-            id = postedData["id"]
+            user = postedData["user"]
+            parameters = postedData["parameters"]
 
-            # Check id is valid or not
-            if ObjectId.is_valid(id):
+            # finding the dynamic paramerters values
+            countT = len(parameters)
 
-                # Check id is exist
-                if not EmailExistsWithID(ObjectId(id)):
-                    retJson = {
-                        "status": "failed",
-                        "msg": "Email not found with this id"
-                    }
+            params = []
+            for i in range(countT):
+                id = parameters[i]['id']
 
-                    return jsonify(retJson)
+                # ----------------
+                myquery = {"_id": ObjectId(id), "from_address": user}
+                newvalues = {"$set": {
 
-                myquery = {"_id": ObjectId(id)}
+                    "deleted_by_sender": 1,
+                    "status": "deleted",
+                    "updated_at": datetime.today().strftime('%d-%m-%Y')
 
-                res = emailcol.delete_one(myquery)
+                }}
 
-                retJson = {
-                    "status": "ok",
-                    "msg": "Email deleted successfully"
-                }
+                emailcol.update_one(myquery, newvalues)
 
-                return jsonify(retJson)
+                # ----------------------------
 
+            retJson = {
+                "status": "ok",
+                "msg": "All emails moved to trashbox"
+            }
 
-            else:
-                retJson = {
-                    "status": "failed",
-                    "msg": "Email delete failed or invalid id"
-                }
-
-                return jsonify(retJson)
+            return jsonify(retJson)
 
 
 
