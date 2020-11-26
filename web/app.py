@@ -7277,7 +7277,7 @@ class SendNewEmail(Resource):
 
                 }
 
-                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body
+                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body +  "&sender=" + from_address
 
                 headers = {
                     'Content-Type': 'application/json'
@@ -7459,7 +7459,7 @@ class SendNewEmailMulitple(Resource):
 
                 }).inserted_id
 
-                url = "http://tuembd.com/test_mail_2.php?email=" + i + "&subject=" + title + "&body=" + body
+                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body +  "&sender=" + from_address
 
                 headers = {
                     'Content-Type': 'application/json'
