@@ -2387,6 +2387,15 @@ class PackageUpdate(Resource):
             total_amount = postedData["total_amount"]
             discounted_amount = postedData["discounted_amount"]
 
+
+            if PackageExistWithTitle(title):
+                retJson = {
+                    "status": "failed",
+                    "msg": "Package name already exists!"
+                }
+
+                return jsonify(retJson)
+
             parameters = postedData["parameters"]
 
             countT = len(parameters)
@@ -3962,7 +3971,7 @@ class CreateUserType(Resource):
             if TypeExist(typename):
                 retJson = {
                     'status': 301,
-                    'msg': 'Type already exists,try with a new one!'
+                    'msg': 'User type already exists!'
                 }
                 return jsonify(retJson)
 
