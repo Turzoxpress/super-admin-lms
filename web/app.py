@@ -3702,6 +3702,105 @@ class GetAllInstituteListSpecial(Resource):
 
         return jsonify(retJson)
 
+# -- Institute API for dashbaord
+class InstituteAPIForDashboard(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = institutecol.find({})
+
+            university = 0
+            college = 0
+            school = 0
+            madrasha = 0
+            others = 0
+            total = 0;
+
+            holder = []
+            for i in result:
+
+                total = total + 1
+                name = str(i["institute_id"])
+                if "UNI" in name:
+                    university = university + 1
+                elif "COL" in name:
+                    college = college + 1
+                elif "SCH" in name:
+                    school = school + 1
+                elif "MAD" in name:
+                    madrasha = madrasha + 1
+                else:
+                    others = others + 1
+
+
+            retJson = {
+                "status": "ok",
+                "data": {
+                    "total" : total,
+                    "university": university,
+                    "college": college,
+                    "school": school,
+                    "madrasha": madrasha,
+                    "others": others
+                }
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
 
 # -- Change institute active status
 class InstituteActiveStatusChange(Resource):
@@ -10155,6 +10254,9 @@ api.add_resource(AddPackageMissingFields, '/AddPackageMissingFields')
 api.add_resource(AddSuperAdminMissingFields, '/AddSuperAdminMissingFields')
 
 api.add_resource(InstituteCreateSpecial, '/InstituteCreateSpecial')
+
+api.add_resource(InstituteAPIForDashboard, '/InstituteAPIForDashboard')
+
 
 
 
