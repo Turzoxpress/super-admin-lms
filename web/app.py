@@ -6278,6 +6278,97 @@ class GetAllInvoiceList(Resource):
 
             return jsonify(retJson)
 
+# -- Invoice API for dashbord
+class InvoiceAPIForDashboard(Resource):
+    def get(self):
+
+        try:
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            result = billcol.find({})
+
+            total = 0
+            pending = 0
+            approved = 0
+
+            holder = []
+            for i in result:
+                total = total + 1
+
+                status = str(i["status"])
+
+                if status == "Approved":
+                    approved = approved + 1
+                else:
+                    pending = pending + 1
+
+
+
+
+
+            retJson = {
+                "status": "ok",
+                "data": {
+                    "total": total,
+                    "approved": approved,
+                    "pending": pending
+                }
+            }
+
+            return jsonify(retJson)
+
+
+        except jwt.ExpiredSignatureError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+
+            return jsonify(retJson)
 
 def InvoiceExistWithId(id):
     if billcol.find({"_id": id}).count() == 0:
@@ -10256,6 +10347,8 @@ api.add_resource(AddSuperAdminMissingFields, '/AddSuperAdminMissingFields')
 api.add_resource(InstituteCreateSpecial, '/InstituteCreateSpecial')
 
 api.add_resource(InstituteAPIForDashboard, '/InstituteAPIForDashboard')
+api.add_resource(InvoiceAPIForDashboard, '/InvoiceAPIForDashboard')
+
 
 
 
