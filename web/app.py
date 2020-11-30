@@ -26,8 +26,6 @@ from bson import ObjectId
 
 import geloc
 
-
-
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -80,6 +78,7 @@ def TokenExist(tokenToCheck):
         return False
     else:
         return True
+
 
 def UserExistNormal(username):
     if normalusercol.find({"email": username}).count() == 0:
@@ -485,8 +484,6 @@ class UpdateSuperAdminPassword(Resource):
                         }
                         return jsonify(retJson)
 
-
-
                 # return 'Ready to do next job'
                 hashed_pw = superad.find({
                     "email": email
@@ -619,10 +616,9 @@ class SuperAdminProfileInfoUpdate(Resource):
                     return jsonify(retJson)
 
                 # get the data
-                #postedData = request.get_json()
+                # postedData = request.get_json()
 
                 # Get the data
-
 
                 myquery = {"email": email}
                 newvalues = {"$set": {
@@ -652,12 +648,9 @@ class SuperAdminProfileInfoUpdate(Resource):
                 return jsonify(retJson)
 
             # get the data
-            #postedData = request.get_json()
+            # postedData = request.get_json()
 
             # Get the data
-
-
-
 
             myquery = {"email": email}
             newvalues = {"$set": {
@@ -891,7 +884,7 @@ class SuperAdminAddressUpdate(Resource):
         parts = auth_header_value.split()
 
         if parts[0].lower() != 'bearer':
-            #return False
+            # return False
             retJson = {
                 "status": "failed",
                 "msg": "Invalid access token"
@@ -946,7 +939,6 @@ class SuperAdminAddressUpdate(Resource):
 
                 per_address = postedData["per_address"]
 
-
                 myquery = {"email": email}
                 newvalues = {"$set": {
                     "address": address,
@@ -966,15 +958,10 @@ class SuperAdminAddressUpdate(Resource):
 
             # ---------------------------------------------------
 
-
-
-
-
             # Get the data
             address = postedData["address"]
 
             per_address = postedData["per_address"]
-
 
             myquery = {"email": email}
             newvalues = {"$set": {
@@ -1236,7 +1223,6 @@ class SuperAdminAvatarImageUpload(Resource):
                 if request.method == 'POST':
                     attachmentPath = ""
 
-
                     ############################ Attachment upload
 
                     if 'avatar_img' in request.files:
@@ -1454,9 +1440,6 @@ class SuperAdminCoverImageUpload(Resource):
                         "path": attachmentPath
                     }
                     return jsonify(retJson)
-
-
-
 
                 # work to do
             if request.method == 'POST':
@@ -1800,21 +1783,18 @@ class SuperAdminPasswordResetReedemByEmail(Resource):
         return jsonify(retJson)
 
 
-
-
-
 def PackageExist(packageid):
     if packagecol.find({"_id": packageid}).count() == 0:
         return False
     else:
         return True
 
+
 def PackageExistWithTitle(title):
     if packagecol.find({"package.title": title}).count() == 0:
         return False
     else:
         return True
-
 
 
 # -- Save Package
@@ -1878,10 +1858,7 @@ class PackageSave(Resource):
             # finding the dynamic paramerters values
             countT = len(parameters)
 
-            #----- check package tittle is unique or not
-
-
-
+            # ----- check package tittle is unique or not
 
             params = []
             for i in range(countT):
@@ -2059,6 +2036,7 @@ class GetAllPackageListSpecial(Resource):
 
         return jsonify(retJson)
 
+
 # -- Add package missing fields
 class AddPackageMissingFields(Resource):
     def get(self):
@@ -2077,8 +2055,6 @@ class AddPackageMissingFields(Resource):
                 }}
 
                 packagecol.update_one(myquery, newvalues)
-
-
 
             data2 = packagecol.find()
             holder2 = []
@@ -2103,6 +2079,7 @@ class AddPackageMissingFields(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Delete package collection
 class DeleteFullPackage(Resource):
@@ -2387,7 +2364,6 @@ class PackageUpdate(Resource):
             total_amount = postedData["total_amount"]
             discounted_amount = postedData["discounted_amount"]
 
-
             if PackageExistWithTitle(title):
                 retJson = {
                     "status": "failed",
@@ -2411,7 +2387,6 @@ class PackageUpdate(Resource):
                     "updated_at": datetime.today().strftime('%d-%m-%Y')
                 }
                 params.append(data)
-
 
             # Check id is valid or not
             if ObjectId.is_valid(id):
@@ -2472,7 +2447,6 @@ class PackageUpdate(Resource):
                 "status": "failed",
                 "msg": "Invalid access token"
             }
-
 
 
 def IsPackageUsedForInstitute(package_id):
@@ -2672,7 +2646,6 @@ class PackageAddNewParameter(Resource):
                     params.append(data)
 
                 result = packagecol.find({"_id": ObjectId(id)})
-
 
                 """dbparams = {}
                 for i in result:
@@ -2928,17 +2901,20 @@ def SpecialInstituteID():
     present_id = previous_id + 1
     return present_id
 
+
 def InstituteExistWithEmail(email):
     if institutecol.find({"email": email}).count() == 0:
         return True
     else:
         return False
 
+
 def InstituteExistWithPhone(phone):
     if institutecol.find({"phone": phone}).count() == 0:
         return True
     else:
         return False
+
 
 # -- Create institute
 class InstituteCreate(Resource):
@@ -3064,7 +3040,6 @@ class InstituteCreate(Resource):
             for i in res:
                 int_id = str(i["integer_id"])
 
-
             retJson = {
                 "status": "ok",
                 "msg": str(sts),
@@ -3092,6 +3067,7 @@ class InstituteCreate(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Create institute Special Main Site
 class InstituteCreateSpecial(Resource):
@@ -3562,9 +3538,7 @@ def getPackageNameFromID(id):
     name = packagecol.find({
         "_id": id
     })[0]["package"]["title"]
-    return name #packagecol.find({"package_id": "5fabc454007fe638b25b5307"})[0]["package"]["title"]
-
-
+    return name  # packagecol.find({"package_id": "5fabc454007fe638b25b5307"})[0]["package"]["title"]
 
 
 # -- Get All Institute List
@@ -3631,8 +3605,7 @@ class GetAllInstituteList(Resource):
                     "updated_at": str(i["updated_at"]),
                     "package_id": str(i["package_id"]),
                     "integer_id": int(i["integer_id"]),
-                    "package_name":  getPackageNameFromID(ObjectId(i["package_id"]))
-
+                    "package_name": getPackageNameFromID(ObjectId(i["package_id"]))
 
                 }
 
@@ -3703,6 +3676,7 @@ class GetAllInstituteListSpecial(Resource):
 
         return jsonify(retJson)
 
+
 # -- Institute API for dashbaord
 class InstituteAPIForDashboard(Resource):
     def get(self):
@@ -3771,11 +3745,10 @@ class InstituteAPIForDashboard(Resource):
                 else:
                     others = others + 1
 
-
             retJson = {
                 "status": "ok",
                 "data": {
-                    "total" : total,
+                    "total": total,
                     "university": university,
                     "college": college,
                     "school": school,
@@ -3802,6 +3775,7 @@ class InstituteAPIForDashboard(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Change institute active status
 class InstituteActiveStatusChange(Resource):
@@ -4525,9 +4499,6 @@ class UpdateUserActivation(Resource):
             return jsonify(retJson)
 
 
-
-
-
 # -- Register new normal user
 class RegisterNewUserNormal(Resource):
     def post(self):
@@ -4681,8 +4652,6 @@ class GetAllUserNormalList(Resource):
                 return jsonify(retJson)
 
             result = normalusercol.find({})
-
-
 
             holder = []
             for i in result:
@@ -4965,11 +4934,6 @@ class NormalUserAddressUpdate(Resource):
             address = postedData["address"]
 
             per_address = postedData["per_address"]
-
-
-
-
-
 
             # Check user with email
             if not UserExistNormal(email):
@@ -5474,7 +5438,6 @@ class GetNormalUserProfileInfo(Resource):
                 user_data["date_of_joining"] = str(i["date_of_joining"])
                 user_data["employee_id"] = str(i["employee_id"])
 
-
                 # holder.append(user_data)
 
             retJson = {
@@ -5578,7 +5541,6 @@ class GetNormalUserAddress(Resource):
                 user_data["address"] = str(i["address"])
 
                 user_data["per_address"] = str(i["per_address"])
-
 
             retJson = {
                 "status": "ok",
@@ -5741,6 +5703,7 @@ class NormalUserPasswordResetReedemByEmail(Resource):
         }
         return jsonify(retJson)
 
+
 # -- Normal User Status update
 class NormalUserStatusUpdate(Resource):
     def post(self):
@@ -5837,6 +5800,7 @@ class NormalUserStatusUpdate(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Get Normal User status
 class GetNormalUserStatus(Resource):
@@ -5937,14 +5901,13 @@ class GetNormalUserStatus(Resource):
 
             return jsonify(retJson)
 
+
 # -- Normal User Status field add
 class NormalUserStatusFieldAdd(Resource):
     def get(self):
         try:
             # *******************************************
             # *******************************************
-
-
 
             data = normalusercol.find()
 
@@ -5956,8 +5919,6 @@ class NormalUserStatusFieldAdd(Resource):
                 }}
 
                 normalusercol.update_one(myquery, newvalues)
-
-
 
             data2 = normalusercol.find()
             holder2 = []
@@ -6068,15 +6029,11 @@ class GetAllInstituteIDs(Resource):
             return jsonify(retJson)
 
 
-
-def BillingInvoiceMonthCheck(id,month,year):
+def BillingInvoiceMonthCheck(id, month, year):
     if billcol.find({"institute_id": id, "month": month, "year": year}).count() == 0:
         return False
     else:
         return True
-
-
-
 
 
 # -- Create new invoice
@@ -6279,6 +6236,7 @@ class GetAllInvoiceList(Resource):
 
             return jsonify(retJson)
 
+
 # -- Invoice API for dashbord
 class InvoiceAPIForDashboard(Resource):
     def get(self):
@@ -6339,10 +6297,6 @@ class InvoiceAPIForDashboard(Resource):
                 else:
                     pending = pending + 1
 
-
-
-
-
             retJson = {
                 "status": "ok",
                 "data": {
@@ -6370,6 +6324,7 @@ class InvoiceAPIForDashboard(Resource):
             }
 
             return jsonify(retJson)
+
 
 def InvoiceExistWithId(id):
     if billcol.find({"_id": id}).count() == 0:
@@ -6667,7 +6622,7 @@ class UpdateInvoiceApprovalStatus(Resource):
             myquery = {"_id": ObjectId(id)}
             newvalues = {"$set": {
                 "status": status
-                #"updated_at": datetime.today().strftime('%d-%m-%Y')
+                # "updated_at": datetime.today().strftime('%d-%m-%Y')
 
             }}
 
@@ -6699,13 +6654,13 @@ class UpdateInvoiceApprovalStatus(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Attach payment receipt with invoice
 class AttachPaymentReceiptWithInvoiceSpecial(Resource):
     def post(self):
 
         try:
             invoice_id = request.form['invoice_id']
-
 
             if request.method == 'POST':
 
@@ -6736,8 +6691,6 @@ class AttachPaymentReceiptWithInvoiceSpecial(Resource):
                     attachmentPath = ""
 
                 ############################ end of attachement upload
-
-
 
                 myquery = {"_id": ObjectId(invoice_id)}
                 newvalues = {"$set": {
@@ -6781,11 +6734,6 @@ class AttachPaymentReceiptWithInvoiceSpecial(Resource):
             return jsonify(retJson)
 
 
-
-
-
-
-
 def GetInstituteContact(id):
     try:
         contact = institutecol.find({
@@ -6796,11 +6744,7 @@ def GetInstituteContact(id):
         return "NA"
 
 
-
-
-
 def GetInstituteEmail(id):
-
     try:
         email = institutecol.find({
             "institute_id": id
@@ -6872,7 +6816,6 @@ class GetAllInstituteListWithInvoice(Resource):
                     "created_at": str(i["created_at"]),
                     "updated_at": str(i["updated_at"])
 
-
                 }
 
                 holder.append(data)
@@ -6910,6 +6853,7 @@ def InstituteExistStringId(id):
         return False
     else:
         return True
+
 
 def InstituteExistWithIntegerID(id):
     if institutecol.find({"integer_id": id}).count() == 0:
@@ -6991,7 +6935,6 @@ class GetAllInvoicesSingleInstitute(Resource):
                 package_data["updated_at"] = str(i["updated_at"])
                 package_data["integer_id"] = str(i["integer_id"])
 
-
             result2 = billcol.find({"institute_id": institute_id_string})
 
             holder = []
@@ -7039,6 +6982,7 @@ class GetAllInvoicesSingleInstitute(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Get all invoice of an institute special
 class GetAllInvoicesSingleInstituteSpecial(Resource):
     def post(self):
@@ -7048,7 +6992,6 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
 
             # Get the data a
             id = postedData["id"]
-
 
             if not InstituteExistWithIntegerID(id):
                 retJson = {
@@ -7124,9 +7067,6 @@ class GetAllInvoicesSingleInstituteSpecial(Resource):
                 "msg": "Not found any data in server"
             }
             return jsonify(retJson)
-
-
-
 
 
 # -- Test other class api
@@ -7477,7 +7417,7 @@ class SendNewEmail(Resource):
 
                 }
 
-                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body +  "&sender=" + from_address
+                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body + "&sender=" + from_address
 
                 headers = {
                     'Content-Type': 'application/json'
@@ -7516,6 +7456,7 @@ class SendNewEmail(Resource):
             }
 
             return jsonify(retJson)
+
 
 # -- Save new Multiple Email
 class SendNewEmailMulitple(Resource):
@@ -7573,8 +7514,6 @@ class SendNewEmailMulitple(Resource):
             imagePath = ""
             if request.method == 'POST':
 
-
-
                 ############################ Attachment upload
 
                 if 'file_attachment' in request.files:
@@ -7628,8 +7567,6 @@ class SendNewEmailMulitple(Resource):
 
                 ############################ end of attachement upload
 
-
-
             x = to_address.split(",")
 
             for i in x:
@@ -7641,8 +7578,6 @@ class SendNewEmailMulitple(Resource):
                     }
 
                     return jsonify(retJson)"""
-
-
 
                 sts = emailcol.insert_one({
                     "to_address": i,
@@ -7659,7 +7594,7 @@ class SendNewEmailMulitple(Resource):
 
                 }).inserted_id
 
-                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body +  "&sender=" + from_address
+                url = "http://tuembd.com/test_mail_2.php?email=" + to_address + "&subject=" + title + "&body=" + body + "&sender=" + from_address
 
                 headers = {
                     'Content-Type': 'application/json'
@@ -7672,8 +7607,6 @@ class SendNewEmailMulitple(Resource):
                     headers=headers
 
                 )
-
-
 
             retJson = {
                 "status": "ok",
@@ -8790,6 +8723,101 @@ class GetEmailForTrashBox(Resource):
             }
             return jsonify(retJson)
 
+
+# -- Get total Email counter
+class GetTotalEmailsCounter(Resource):
+    def post(self):
+
+        try:
+
+            auth_header_value = request.headers.get('Authorization', None)
+
+            if not auth_header_value:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            parts = auth_header_value.split()
+
+            if parts[0].lower() != 'bearer':
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) == 1:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+            elif len(parts) > 2:
+                # return False
+                retJson = {
+                    "status": "failed",
+                    "msg": "Invalid access token"
+                }
+
+                return jsonify(retJson)
+
+            postedData = request.get_json()
+            email = postedData["email"]
+
+            inbox_total = 0
+            sentbox_total = 0
+            draftbox_total = 0
+            trashbox_total = 0
+
+            # all emails in inbox
+            inbox_total = emailcol.find({"to_address": email, "deleted_by_receiver": 0}).count()
+
+            # all emails in sentbox
+            sentbox_total = emailcol.find({"from_address": email, "deleted_by_sender": 0}).count()
+
+            # all emails in draftbox
+            draftbox_total = emailcol.find({"from_address": email, "status": "draft"}).count()
+
+            # all emails in trashbox
+            trashbox_total = emailcol.find({"from_address": email, "deleted_by_sender": 1}).count()
+            trashbox_total = trashbox_total + emailcol.find({"to_address": email, "deleted_by_receiver": 1}).count()
+
+            retJson = {
+                "status": "ok",
+                "data": {
+                    "inbox": inbox_total,
+                    "sentbox": sentbox_total,
+                    "draft": draftbox_total,
+                    "deleted": trashbox_total
+                }
+            }
+
+            return jsonify(retJson)
+
+        except jwt.ExpiredSignatureError:
+            # return 'Signature expired' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+        except jwt.InvalidTokenError:
+            # return 'Invalid token' Please log in again.'
+            retJson = {
+                "status": "failed",
+                "msg": "Invalid access token"
+            }
+            return jsonify(retJson)
+
+
 # -- Delete Email from Inbox
 class DeleteEmailFromInbox(Resource):
     def post(self):
@@ -8885,6 +8913,7 @@ class DeleteEmailFromInbox(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Delete Email from SentBox
 class DeleteEmailFromSentBox(Resource):
     def post(self):
@@ -8937,8 +8966,6 @@ class DeleteEmailFromSentBox(Resource):
 
             # finding the dynamic paramerters values
             countT = len(parameters)
-
-
 
             params = []
             for i in range(countT):
@@ -9091,6 +9118,7 @@ def SettingsPackageExistWithName(name):
         return False
     else:
         return True
+
 
 def SettingsPackageExistWithId(id):
     if settingspackagecol.find({"_id": id}).count() == 0:
@@ -9392,6 +9420,7 @@ class GetSettingsPackageWithID(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Update settings package active
 class UpdateSettingsPackageActiveStatus(Resource):
     def post(self):
@@ -9442,7 +9471,6 @@ class UpdateSettingsPackageActiveStatus(Resource):
             id = postedData["id"]
             active = postedData["active"]
 
-
             # Check id is exist
             if not SettingsPackageExistWithId(ObjectId(id)):
                 retJson = {
@@ -9486,6 +9514,7 @@ class UpdateSettingsPackageActiveStatus(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Update settings package
 class UpdateSettingsPackage(Resource):
@@ -9540,7 +9569,6 @@ class UpdateSettingsPackage(Resource):
             package_amount = postedData["package_amount"]
             active = postedData["active"]
 
-
             # Check id is exist
             if not SettingsPackageExistWithId(ObjectId(id)):
                 retJson = {
@@ -9589,6 +9617,7 @@ class UpdateSettingsPackage(Resource):
             }
             return jsonify(retJson)
 
+
 def SpecialSettingsInstituteID():
     previous_id = settingsinstitutecol.count()
     present_id = previous_id + 1
@@ -9601,17 +9630,20 @@ def SettingsInstituteExistWithName(name):
     else:
         return True
 
+
 def SettingsInstituteExistWithShortForm(short_form):
     if settingsinstitutecol.find({"short_form": short_form}).count() == 0:
         return False
     else:
         return True
 
+
 def SettingsInstituteExistWithId(id):
     if settingsinstitutecol.find({"_id": id}).count() == 0:
         return False
     else:
         return True
+
 
 # -- Settings institute create
 class SettingsInstituteCreate(Resource):
@@ -9663,7 +9695,6 @@ class SettingsInstituteCreate(Resource):
             institute_name = postedData["institute_name"]
             short_form = postedData["short_form"]
 
-
             # Check name is exist
             if SettingsInstituteExistWithName(institute_name):
                 retJson = {
@@ -9692,8 +9723,6 @@ class SettingsInstituteCreate(Resource):
 
             }).inserted_id
 
-
-
             retJson = {
                 "status": "ok",
                 "msg": str(sts)
@@ -9720,6 +9749,7 @@ class SettingsInstituteCreate(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Delete all settings institute collection
 class DeleteAllSettingsInstituteCollection(Resource):
     def get(self):
@@ -9731,6 +9761,7 @@ class DeleteAllSettingsInstituteCollection(Resource):
         }
 
         return jsonify(retJson)
+
 
 # -- Settings institute list
 class GetSettingsInstituteList(Resource):
@@ -9778,8 +9809,6 @@ class GetSettingsInstituteList(Resource):
 
             result = settingsinstitutecol.find({})
 
-
-
             holder = []
             count = 0
             for i in result:
@@ -9822,6 +9851,7 @@ class GetSettingsInstituteList(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Settings institute list special
 class GetSettingsInstituteListSpecial(Resource):
@@ -9942,6 +9972,7 @@ class GetSettingsInstituteWithID(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Update settings institute active
 class UpdateSettingsInstituteActiveStatus(Resource):
     def post(self):
@@ -9992,7 +10023,6 @@ class UpdateSettingsInstituteActiveStatus(Resource):
             id = postedData["id"]
             active = postedData["active"]
 
-
             # Check id is exist
             if not SettingsInstituteExistWithId(ObjectId(id)):
                 retJson = {
@@ -10036,6 +10066,7 @@ class UpdateSettingsInstituteActiveStatus(Resource):
                 "msg": "Invalid access token"
             }
             return jsonify(retJson)
+
 
 # -- Update settings institute
 class UpdateSettingsInstitute(Resource):
@@ -10089,7 +10120,6 @@ class UpdateSettingsInstitute(Resource):
             short_form = postedData["short_form"]
             active = postedData["active"]
 
-
             # Check id is exist
             if not SettingsInstituteExistWithId(ObjectId(id)):
                 retJson = {
@@ -10137,6 +10167,7 @@ class UpdateSettingsInstitute(Resource):
             }
             return jsonify(retJson)
 
+
 # -- Delete all invoice
 class DeleteAllInvoice(Resource):
     def get(self):
@@ -10153,7 +10184,6 @@ class DeleteAllInvoice(Resource):
 # -- Delete everything
 class DeleteEverything(Resource):
     def get(self):
-
         superad.drop()
         tokenbank.drop()
         packagecol.drop()
@@ -10172,11 +10202,11 @@ class DeleteEverything(Resource):
 
         return jsonify(retJson)
 
+
 # -- Delete everything without super admin
 class DeleteEverythingWithoutSuperAdmin(Resource):
     def get(self):
-
-        #superad.drop()
+        # superad.drop()
         tokenbank.drop()
         packagecol.drop()
         institutecol.drop()
@@ -10194,6 +10224,7 @@ class DeleteEverythingWithoutSuperAdmin(Resource):
 
         return jsonify(retJson)
 
+
 # -- Add super admin missing fields
 class AddSuperAdminMissingFields(Resource):
     def get(self):
@@ -10210,8 +10241,6 @@ class AddSuperAdminMissingFields(Resource):
                 }}
 
                 superad.update_one(myquery, newvalues)
-
-
 
             data2 = superad.find()
             holder2 = []
@@ -10236,6 +10265,8 @@ class AddSuperAdminMissingFields(Resource):
             }
 
             return jsonify(retJson)
+
+
 # -----------------------------------------------------------------------
 
 
@@ -10289,7 +10320,6 @@ api.add_resource(ViewSingleUserType, '/ViewSingleUserType')
 api.add_resource(UpdateUserType, '/UpdateUserType')
 api.add_resource(UpdateUserActivation, '/UpdateUserActivation')
 
-
 api.add_resource(RegisterNewUserNormal, '/RegisterNewUserNormal')
 api.add_resource(GetAllUserNormalList, '/GetAllUserNormalList')
 api.add_resource(NormalUserLogin, '/NormalUserLogin')
@@ -10321,10 +10351,6 @@ api.add_resource(GetAllInvoicesSingleInstitute, '/GetAllInvoicesSingleInstitute'
 api.add_resource(GetAllInvoicesSingleInstituteSpecial, '/GetAllInvoicesSingleInstituteSpecial')
 api.add_resource(AttachPaymentReceiptWithInvoiceSpecial, '/AttachPaymentReceiptWithInvoiceSpecial')
 
-
-
-
-
 # -- From feedback Global
 api.add_resource(GetAllDivisions, '/GetAllDivisions')
 api.add_resource(GetDistricts, '/GetDistricts')
@@ -10347,10 +10373,6 @@ api.add_resource(DeleteEmailFromSentBox, '/DeleteEmailFromSentBox')
 api.add_resource(DeleteEmailFromDraftBox, '/DeleteEmailFromDraftBox')
 api.add_resource(SendNewEmailMulitple, '/SendNewEmailMulitple')
 
-
-
-
-
 api.add_resource(SettingsPackageCreate, '/SettingsPackageCreate')
 api.add_resource(DeleteAllSettingsPackageCollection, '/DeleteAllSettingsPackageCollection')
 api.add_resource(GetSettingsPackageList, '/GetSettingsPackageList')
@@ -10369,8 +10391,7 @@ api.add_resource(UpdateSettingsInstitute, '/UpdateSettingsInstitute')
 
 api.add_resource(DeleteAllInvoice, '/DeleteAllInvoice')
 
-
-#---
+# ---
 api.add_resource(DeleteEverything, '/DeleteEverything')
 api.add_resource(DeleteEverythingWithoutSuperAdmin, '/DeleteEverythingWithoutSuperAdmin')
 api.add_resource(AddPackageMissingFields, '/AddPackageMissingFields')
@@ -10380,11 +10401,7 @@ api.add_resource(InstituteCreateSpecial, '/InstituteCreateSpecial')
 
 api.add_resource(InstituteAPIForDashboard, '/InstituteAPIForDashboard')
 api.add_resource(InvoiceAPIForDashboard, '/InvoiceAPIForDashboard')
-
-
-
-
-
+api.add_resource(GetTotalEmailsCounter, '/GetTotalEmailsCounter')
 
 
 # -------------------------------------------------------------------------------
