@@ -3118,7 +3118,8 @@ class InstituteCreateSpecial(Resource):
         part1 = ""
         part2 = ""
         part3 = ""
-        if institute_type == "University":
+
+        """"if institute_type == "University":
             part1 = "UNIV"
         elif institute_type == "College":
             part1 = "COL"
@@ -3127,7 +3128,7 @@ class InstituteCreateSpecial(Resource):
         elif institute_type == "Madhrasha":
             part1 = "MAD"
         elif institute_type == "Private Training Center":
-            part1 = "PTC"
+            part1 = "PTC"""""
 
         # ------
         words = institute_name.split()
@@ -3137,7 +3138,7 @@ class InstituteCreateSpecial(Resource):
 
         now = datetime.now()
         part3 = now.strftime("%I%M%S")
-        institute_id = part1 + "-" + part2 + "-" + part3
+        institute_id = institute_type + "-" + part2 + "-" + part3
 
         # ----------------
 
@@ -9822,6 +9823,35 @@ class GetSettingsInstituteList(Resource):
             }
             return jsonify(retJson)
 
+# -- Settings institute list special
+class GetSettingsInstituteListSpecial(Resource):
+    def get(self):
+        result = settingsinstitutecol.find({})
+
+        holder = []
+        count = 0
+        for i in result:
+            data = {
+                "id": str(i["_id"]),
+                "institute_name": str(i["institute_name"]),
+                "short_form": str(i["short_form"]),
+                "active": str(i["active"]),
+                "created_at": str(i["created_at"]),
+                "updated_at": str(i["updated_at"])
+
+            }
+            count = count + 1
+
+            holder.append(data)
+
+        retJson = {
+            "status": "ok",
+            "count": count,
+            "data": holder
+        }
+
+        return jsonify(retJson)
+
 
 # -- Settings institute with id
 class GetSettingsInstituteWithID(Resource):
@@ -10331,6 +10361,8 @@ api.add_resource(UpdateSettingsPackage, '/UpdateSettingsPackage')
 api.add_resource(SettingsInstituteCreate, '/SettingsInstituteCreate')
 api.add_resource(DeleteAllSettingsInstituteCollection, '/DeleteAllSettingsInstituteCollection')
 api.add_resource(GetSettingsInstituteList, '/GetSettingsInstituteList')
+api.add_resource(GetSettingsInstituteListSpecial, '/GetSettingsInstituteListSpecial')
+
 api.add_resource(GetSettingsInstituteWithID, '/GetSettingsInstituteWithID')
 api.add_resource(UpdateSettingsInstituteActiveStatus, '/UpdateSettingsInstituteActiveStatus')
 api.add_resource(UpdateSettingsInstitute, '/UpdateSettingsInstitute')
