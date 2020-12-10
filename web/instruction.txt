@@ -41,3 +41,16 @@ sudo docker-compose exec -T db mongorestore --archive --gzip < dump.gz
 #Step 6
 1.Restart apache
  sudo service apache2 restart
+
+
+ -------------------------------------------------------------------------------------
+ How to ready frontend (ReactNative):
+ 1. Install apache2
+ 2. Install php
+ 3. clone front end
+ 4. clone backend php
+ 5. create "files" folder
+ 6. Enable Rewrite mode
+   -  sudo a2enmod rewrite
+ 7. Follow this page instruction ro resolve react native rewrite rules
+  - https://stackoverflow.com/questions/51357947/react-app-on-server-while-refreshing-the-page-shows-404-page
