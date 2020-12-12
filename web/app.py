@@ -2364,13 +2364,13 @@ class PackageUpdate(Resource):
             total_amount = postedData["total_amount"]
             discounted_amount = postedData["discounted_amount"]
 
-            if PackageExistWithTitle(title):
+            """if PackageExistWithTitle(title):
                 retJson = {
                     "status": "failed",
                     "msg": "Package name already exists!"
                 }
 
-                return jsonify(retJson)
+                return jsonify(retJson)"""
 
             parameters = postedData["parameters"]
 
@@ -3109,12 +3109,13 @@ class InstituteCreateSpecial(Resource):
         # ------
         words = institute_name.split()
         for i in words:
-            if i != "and" and i != "of" and i != "&":
+            if i != "and"  and i != "of" and i != "&" and i != "AND" and i != "OF":
                 part2 = part2 + i[0]
 
         now = datetime.now()
         part3 = now.strftime("%I%M%S")
         institute_id = institute_type + "-" + part2 + "-" + part3
+        institute_id = institute_id.upper()
 
         # ----------------
 
