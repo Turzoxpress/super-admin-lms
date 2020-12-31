@@ -3,7 +3,7 @@ flask_restful
 pymongo
 bcrypt
 python-bsonjs
-pyjwt
+PyJWT==1.7.1
 requests
 Pillow
 flask-cors

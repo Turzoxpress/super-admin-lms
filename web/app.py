@@ -51,8 +51,8 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = "."
 
-file_upload_server_path_php = 'http://3.18.106.27/turzo/upload.php'
-file_upload_server_path = 'http://3.18.106.27/turzo/files/'
+file_upload_server_path_php = 'http://35.238.61.43/turzo/upload.php'
+file_upload_server_path = 'http://35.238.61.43/turzo/files/'
 
 
 # -- Welcome API
