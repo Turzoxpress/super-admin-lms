@@ -25,6 +25,9 @@ sudo docker-compose exec -T db mongodump --archive --gzip --db SuperAdminDB> dum
 
 sudo chmod 666 /var/run/docker.sock
 
+sudo docker ps -all
+
+
 sudo docker stop $(docker ps -a -q)
 
 sudo docker rm $(docker ps -a -q)
