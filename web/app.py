@@ -51,8 +51,8 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = "."
 
-file_upload_server_path_php = 'http://35.238.61.43/turzo/upload.php'
-file_upload_server_path = 'http://35.238.61.43/turzo/files/'
+file_upload_server_path_php = 'https://35.238.61.43/turzo/upload.php'
+file_upload_server_path = 'https://35.238.61.43/turzo/files/'
 
 
 # -- Welcome API
@@ -10408,4 +10408,4 @@ api.add_resource(GetTotalEmailsCounter, '/GetTotalEmailsCounter')
 # -------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', ssl_context='adhoc')
