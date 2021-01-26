@@ -7,3 +7,4 @@ PyJWT==1.7.1
 requests
 Pillow
 flask-cors
+cryptography
