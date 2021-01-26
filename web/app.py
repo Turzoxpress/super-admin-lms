@@ -26,6 +26,8 @@ from bson import ObjectId
 
 import geloc
 
+import ssl
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -53,6 +55,9 @@ app.config['UPLOAD_FOLDER'] = "."
 
 file_upload_server_path_php = 'https://learnerscafe.com/turzo/upload.php'
 file_upload_server_path = 'https://learnerscafe.com/turzo/files/'
+
+ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+ctx.load_cert_chain('certificates/se-emulator.crt', 'certificates/se-emulator.key')
 
 
 # -- Welcome API
@@ -10408,5 +10413,5 @@ api.add_resource(GetTotalEmailsCounter, '/GetTotalEmailsCounter')
 # -------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
-    #app.run(debug=True, host='0.0.0.0',ssl_context='adhoc')
+    #app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', ssl_context=ctx)
