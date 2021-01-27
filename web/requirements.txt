@@ -1,0 +1,10 @@
+Flask
+flask_restful
+pymongo
+bcrypt
+python-bsonjs
+PyJWT==1.7.1
+requests
+Pillow
+flask-cors
+cryptography
