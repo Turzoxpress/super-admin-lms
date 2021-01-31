@@ -3171,13 +3171,13 @@ class InstituteCreateSpecial(Resource):
         }).inserted_id
 
         res = institutecol.find({"_id": ObjectId(sts)})
-        int_id = 0;
+        int_id = 0
         for i in res:
             int_id = str(i["integer_id"])
 
         # -----Last task
 
-        url = "http://34.66.76.39:9091/api/other/user"
+        url = "https://lms.learnerscafe.com/api/other/user"
 
         payload = {
             "firstName": institute_name,
